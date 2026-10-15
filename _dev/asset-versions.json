@@ -1,0 +1,146 @@
+{
+  "/account/account.js": {
+    "versions": [
+      "2"
+    ],
+    "sha": "441b2467f1057ecc"
+  },
+  "/assets/css/global.css": {
+    "versions": [
+      "34"
+    ],
+    "sha": "7cdb0ed5b8f95970"
+  },
+  "/assets/js/config.js": {
+    "versions": [
+      "2"
+    ],
+    "sha": "984bbfe46afc368e"
+  },
+  "/assets/js/db.js": {
+    "versions": [
+      "2"
+    ],
+    "sha": "cad2e354a4098eee"
+  },
+  "/assets/js/global.js": {
+    "versions": [
+      "37"
+    ],
+    "sha": "abbe7049899f9156"
+  },
+  "/assets/js/pwa.js": {
+    "versions": [
+      "5"
+    ],
+    "sha": "a11b212f39c40a52"
+  },
+  "/assets/js/routes-core.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "9bee1a54ed9072a0"
+  },
+  "/assets/vendor/supabase.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "d6a5c4414a5d4ce6"
+  },
+  "/decided/decided-data.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "590788131cf4c42b"
+  },
+  "/decided/decided-engine.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "2d30c91b64f2b2f9"
+  },
+  "/decided/decided.css": {
+    "versions": [
+      "1"
+    ],
+    "sha": "6f993070d67bc650"
+  },
+  "/decided/decided.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "2800756ed0b03279"
+  },
+  "/kept/kept-core.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "6d5eb2eb2d071226"
+  },
+  "/kept/kept-data.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "b61ae28e47c78584"
+  },
+  "/kept/kept-engine.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "bf0902ecd854d883"
+  },
+  "/kept/kept-import.js": {
+    "versions": [
+      "2"
+    ],
+    "sha": "526911ad79b87200"
+  },
+  "/kept/kept-settings.js": {
+    "versions": [
+      "3"
+    ],
+    "sha": "279ba76511594761"
+  },
+  "/kept/kept-store.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "236e35d82ff9cc05"
+  },
+  "/kept/kept.css": {
+    "versions": [
+      "3"
+    ],
+    "sha": "4529399cc8b87b8b"
+  },
+  "/kept/kept.js": {
+    "versions": [
+      "5"
+    ],
+    "sha": "3b9f2d92872f61ac"
+  },
+  "/spent/spent-data.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "e830baf86fea397f"
+  },
+  "/spent/spent-engine.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "561ff810ee00e0e4"
+  },
+  "/spent/spent.css": {
+    "versions": [
+      "1"
+    ],
+    "sha": "99ca7603662d36be"
+  },
+  "/spent/spent.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "cc2a1998601c9a3e"
+  }
+}

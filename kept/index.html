@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en" data-app="kept">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <link rel="stylesheet" href="../kept/kept.css?v=3">
+  <title>KEPT — RECKON</title>
+  <meta name="description" content="KEPT — how much of your money stays yours.">
+</head>
+<body class="has-app-bar">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <main id="main" class="wrap kp">
+    <!-- In-app tabs. On a phone this becomes the bottom bar with the raised +;
+         the hub's own tab bar steps aside (body.has-app-bar). -->
+    <nav class="app-bar kp-bar" aria-label="KEPT screens" id="kp-bar">
+      <button type="button" data-screen="home" aria-current="page"><span data-icon="home"></span><span>Home</span></button>
+      <button type="button" data-screen="spend"><span data-icon="pie-chart"></span><span>Spend</span></button>
+      <button type="button" class="app-bar__fab" id="kp-fab" aria-label="Add an entry"><span data-icon="plus"></span><span class="kp-bar__fablabel">Add</span></button>
+      <button type="button" data-screen="emis"><span data-icon="credit-card"></span><span>EMIs</span></button>
+      <button type="button" data-screen="insights"><span data-icon="sparkles"></span><span>Insights</span></button>
+    </nav>
+
+    <div class="kp-head">
+      <div>
+        <p class="eyebrow">KEPT</p>
+        <h1 id="kp-title">Home</h1>
+        <p class="muted" id="kp-sub">How much of your money stays yours.</p>
+      </div>
+      <div class="kp-head__rate" id="kp-rate" aria-live="polite"></div>
+    </div>
+
+    <!-- Shown only on the very first open on a device; afterwards the page
+         draws from its snapshot before this can appear. -->
+    <div id="kp-loading" class="stack" aria-busy="true" aria-label="Loading your record">
+      <div class="skeleton skeleton--card" style="height:180px"></div>
+      <div class="kp-two"><div class="skeleton skeleton--card"></div><div class="skeleton skeleton--card"></div></div>
+    </div>
+
+    <!-- ============================== Home -->
+    <section class="kp-screen" data-screen="home" hidden>
+      <div id="home-wrap" class="stack"></div>
+    </section>
+
+    <!-- ============================== Spend -->
+    <section class="kp-screen" data-screen="spend" hidden>
+      <div class="kp-chips" id="spend-chips" role="tablist" aria-label="Period"></div>
+      <div id="spend-head"></div>
+      <div class="kp-two">
+        <div class="panel">
+          <div class="panel__head"><h2>By category</h2><span class="muted" id="spend-sub"></span></div>
+          <div class="kp-donut"><canvas id="ch-cat" aria-label="Spending by category" role="img"></canvas><div class="kp-donut__c" id="donut-center"></div></div>
+          <div id="cat-list" class="kp-catlist"></div>
+        </div>
+        <div class="stack">
+          <div class="panel">
+            <div class="panel__head"><h2>Top merchants</h2></div>
+            <div id="merchants" class="kp-catlist"></div>
+          </div>
+          <div class="panel">
+            <div class="panel__head"><h2>Trend</h2><span class="muted">spend by month, top categories</span></div>
+            <div class="kp-chart"><canvas id="ch-stack" aria-label="Spending trend" role="img"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <p class="kp-note"><button type="button" class="btn btn--ghost" data-go="history">All transactions <span data-icon="arrow-right"></span></button></p>
+    </section>
+
+    <!-- ============================== History (behind Spend) -->
+    <section class="kp-screen" data-screen="history" hidden>
+      <div class="nav-bar">
+        <button type="button" class="nav-bar__back" data-back="spend"><span data-icon="chevron-left" data-icon-size="24"></span><span>Spend</span></button>
+        <h2 class="nav-bar__title">Transactions</h2><span class="nav-bar__end"></span>
+      </div>
+      <div class="panel">
+        <div class="toolbar">
+          <label class="sr-only" for="hx-search">Search</label>
+          <input id="hx-search" type="search" placeholder="Search description, category, note">
+          <label class="sr-only" for="hx-month">Month</label>
+          <select id="hx-month"><option value="all">All months</option></select>
+          <label class="sr-only" for="hx-kind">Kind</label>
+          <select id="hx-kind">
+            <option value="all">All kinds</option><option value="expense">Spending</option><option value="income">Income</option>
+            <option value="refund">Refunds</option><option value="debtpay">EMIs</option><option value="invest">Investing</option><option value="borrowed">Borrowed</option>
+          </select>
+          <button type="button" class="btn btn--ghost btn--sm" id="hx-export"><span data-icon="download"></span> Export</button>
+        </div>
+        <p class="muted" id="hx-count"></p>
+        <div id="hx-list" class="kp-txlist"></div>
+        <button type="button" class="btn btn--ghost btn--block" id="hx-more" hidden>Show more</button>
+      </div>
+    </section>
+
+    <!-- ============================== EMIs -->
+    <section class="kp-screen" data-screen="emis" hidden>
+      <div id="emi-wrap" class="stack"></div>
+      <div class="panel" style="margin-top:var(--space-3)">
+        <div class="panel__head"><div><h2>Other fixed commitments</h2><p class="muted">Rent, salary, subscriptions — set once, Kept writes every occurrence.</p></div>
+          <button type="button" class="btn btn--ghost btn--sm" id="rc-open"><span data-icon="plus"></span> Add rule</button></div>
+        <div id="rc-list" class="kp-catlist"></div>
+      </div>
+    </section>
+
+    <!-- ============================== Insights -->
+    <section class="kp-screen" data-screen="insights" hidden>
+      <div id="ins-hub" class="kp-hub"></div>
+      <!-- An opened tile is its own page: the hub is hidden, the bar says
+           where you are and takes you back. -->
+      <div id="ins-view" hidden>
+        <div class="nav-bar">
+          <button type="button" class="nav-bar__back" id="ins-back"><span data-icon="chevron-left" data-icon-size="24"></span><span>Insights</span></button>
+          <h2 class="nav-bar__title" id="ins-title"></h2><span class="nav-bar__end"></span>
+        </div>
+        <div id="ins-body" class="stack"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================== Add / edit entry -->
+  <dialog class="sheet" id="add-sheet" aria-labelledby="as-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="as-title">Add an entry</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="segmented" id="as-seg" role="group" aria-label="Kind">
+        <button type="button" data-m="out" aria-pressed="true">Spent</button>
+        <button type="button" data-m="in" aria-pressed="false">Received</button>
+        <button type="button" data-m="sms" aria-pressed="false">Paste SMS</button>
+      </div>
+      <form id="as-form" novalidate>
+        <div id="as-manual">
+          <div class="field kp-amount"><label for="as-amt">Amount <span class="muted" id="as-cur"></span></label>
+            <input id="as-amt" class="input--amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+            <p class="kp-time-note" id="as-time" hidden></p></div>
+          <div id="as-tiles" class="kp-tiles"></div>
+          <div class="field"><span class="label">Category</span><div id="as-cats" class="kp-catgrid" role="group" aria-label="Category"></div></div>
+          <div class="field"><label for="as-desc">Description</label><input id="as-desc" type="text" list="as-merch" maxlength="120" placeholder="shop, person, what it was"><datalist id="as-merch"></datalist></div>
+          <div class="field-row">
+            <div class="field"><label for="as-date">Date</label><input id="as-date" type="date"></div>
+            <div class="field"><span class="label">Quick date</span>
+              <div class="segmented"><button type="button" id="as-today" aria-pressed="true">Today</button><button type="button" id="as-yest" aria-pressed="false">Yesterday</button></div></div>
+          </div>
+        </div>
+        <div id="as-sms" hidden>
+          <div class="field"><label for="as-paste">Bank SMS / notifications, one per line</label><textarea id="as-paste" rows="5" placeholder="AED 42.00 spent at CITY HYPERMARKET on 03/04/26…"></textarea></div>
+          <p class="hint">Amounts, merchants and dates are read from the text; categories are guessed and marked for review.</p>
+        </div>
+        <p class="notice notice--danger" id="as-msg" hidden></p>
+        <div class="sheet__actions">
+          <button type="button" class="btn btn--danger" id="as-del" hidden><span data-icon="trash"></span> Delete</button>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+          <button type="submit" class="btn btn--primary" id="as-save">Save expense</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ============================== Add / edit EMI -->
+  <dialog class="sheet" id="emi-sheet" aria-labelledby="em-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="em-title">Add an EMI</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <form id="em-form" novalidate class="stack">
+        <div class="field-row">
+          <div class="field"><label for="em-name">Loan name</label><input id="em-name" type="text" maxlength="60" placeholder="Car loan"></div>
+          <div class="field"><label for="em-lender">Lender <span class="muted">(optional)</span></label><input id="em-lender" type="text" maxlength="60"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="em-amt">Monthly instalment</label><input id="em-amt" type="number" inputmode="decimal" step="0.01" min="0"></div>
+          <div class="field"><label for="em-total">Instalments in total</label><input id="em-total" type="number" inputmode="numeric" min="1" max="600"></div>
+          <div class="field"><label for="em-paid">Paid so far</label><input id="em-paid" type="number" inputmode="numeric" min="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="em-next">Next due date</label><input id="em-next" type="date"></div>
+          <div class="field"><label for="em-apr">Interest rate % / yr <span class="muted">(optional)</span></label><input id="em-apr" type="number" step="0.1" min="0"></div>
+        </div>
+        <label class="kp-check"><input id="em-auto" type="checkbox" checked> Post the instalment into the record on its due day</label>
+        <p class="muted" id="em-preview"></p>
+        <p class="notice notice--danger" id="em-msg" hidden></p>
+        <div class="sheet__actions">
+          <button type="button" class="btn btn--danger" id="em-del" hidden><span data-icon="trash"></span> Delete</button>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+          <button type="submit" class="btn btn--primary">Save EMI</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ============================== Recurring rule -->
+  <dialog class="sheet" id="rc-sheet" aria-labelledby="rc-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="rc-title">Recurring rule</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <form id="rc-form" novalidate class="stack">
+        <div class="field-row">
+          <div class="field"><label for="rc-kind">Kind</label><select id="rc-kind"><option value="out">Expense</option><option value="in">Income</option></select></div>
+          <div class="field"><label for="rc-amt">Amount</label><input id="rc-amt" type="number" inputmode="decimal" step="0.01" min="0"></div>
+          <div class="field"><label for="rc-freq">Every</label><select id="rc-freq"><option value="monthly">Month</option><option value="weekly">Week</option><option value="yearly">Year</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="rc-desc">Name</label><input id="rc-desc" type="text" maxlength="80" placeholder="Rent, Salary, Netflix"></div>
+          <div class="field"><label for="rc-cat">Category</label><select id="rc-cat"></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="rc-start">From</label><input id="rc-start" type="date"></div>
+          <div class="field"><label for="rc-end">Until <span class="muted">(optional)</span></label><input id="rc-end" type="date"></div>
+        </div>
+        <p class="notice notice--danger" id="rc-msg" hidden></p>
+        <div class="sheet__actions">
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+          <button type="submit" class="btn btn--primary">Save rule</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <footer data-site-footer></footer>
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <!-- Chart.js and SheetJS are no longer loaded here: kept.js fetches
+       Chart.js the first time a chart is drawn and kept-import.js fetches
+       SheetJS the first time a file is read or written. -->
+  <script src="../kept/kept-engine.js?v=1" defer></script>
+  <script src="../kept/kept-core.js?v=1" defer></script>
+  <script src="../kept/kept-data.js?v=1" defer></script>
+  <script src="../kept/kept-store.js?v=1" defer></script>
+  <script src="../kept/kept-import.js?v=2" defer></script>
+  <script src="../kept/kept.js?v=5" defer></script>
+</body>
+</html>

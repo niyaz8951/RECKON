@@ -1,0 +1,17 @@
+{
+  "name": "reckon",
+  "private": true,
+  "description": "RECKON — a private hub for personal apps (KEPT, Library, Dictionary). Static site on GitHub Pages; data in Supabase.",
+  "scripts": {
+    "test": "node _dev/run-tests.mjs",
+    "versions": "node _dev/asset-versions.mjs --update",
+    "serve": "npx --yes http-server -p 8080 -c-1 ."
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "subtlex-word-frequencies": "^2.0.0",
+    "wordnet-db": "^3.1.14"
+  }
+}

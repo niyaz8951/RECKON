@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0f13">
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="assets/css/global.css?v=34">
+  <title>Offline — RECKON</title>
+</head>
+<body>
+  <!-- Deliberately contains nothing about the account or its work. The service
+       worker caches this file, and a cache outlives the session that filled
+       it — anything personal here would still be readable after sign-out. -->
+  <main class="auth-landing">
+    <div class="auth-landing__copy">
+      <p class="eyebrow">No connection</p>
+      <h1>You're <em>offline</em>.</h1>
+      <p>
+        RECKON needs a connection: your records live in your account, not on
+        this device. Reconnect and the page you wanted will load.
+      </p>
+      <div class="hero__actions">
+        <button class="btn btn--primary" onclick="location.reload()">Try again</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

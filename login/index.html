@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <title>Sign in — RECKON</title>
+  <meta name="description" content="RECKON — a private hub for personal apps. Sign in to continue.">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- A brand row rather than the site header. The header needs a session
+       to render its account controls, and there is
+       nothing here they could open anyway. -->
+  <div class="auth-bar">
+    <span class="brand"><span class="brand__mark" id="mark"></span>RECKON</span>
+    <button class="btn btn--quiet btn--sm" data-theme-toggle aria-label="Switch colour theme" id="theme"></button>
+  </div>
+
+  <main id="main" class="auth-landing">
+    <div class="auth-landing__copy">
+      <p class="eyebrow">Private by design</p>
+      <h1>Your apps, <em>your data</em>, one door.</h1>
+      <p>
+        KEPT keeps your household money honest. SPENT does the same for your hours.
+        DECIDED keeps you honest about the calls you make. All of it lives inside
+        this account and nowhere else.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-size:1.5rem">Sign in</h2>
+      <p class="muted" style="margin-top:var(--space-2)">
+        One account, one device at a time.
+      </p>
+
+      <div id="notice" hidden style="margin-top:var(--space-3)"></div>
+      <div id="error" hidden style="margin-top:var(--space-3)"></div>
+
+      <form id="form" style="margin-top:var(--space-4)" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn--primary btn--block" style="margin-top:var(--space-4)" type="submit">Sign in</button>
+      </form>
+
+      <p class="hint" style="margin-top:var(--space-4)">
+        No account yet? <a href="../signup/">Request one</a>. New accounts are approved by an admin.
+      </p>
+    </div>
+  </main>
+
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // global.js skips mounting chrome on this page, so the two icons and the
+    // theme toggle are wired here rather than left as empty buttons.
+    TN.el('#mark').innerHTML = TN.icon('layers', 16);
+    TN.el('#theme').innerHTML = TN.icon('moon', 18);
+    TN.el('#theme').addEventListener('click', function () {
+      var now = document.documentElement.getAttribute('data-theme');
+      var next = now === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('tn-theme', next); } catch (e) {}
+    });
+
+    var params = new URLSearchParams(location.search);
+    var next = params.get('next') || TN.base;
+
+    // Only ever return to a path on this site. `next` arrives in the URL, so
+    // without this check a crafted link could bounce someone to another origin
+    // the instant after they typed their password.
+    // It must also stay inside this site's folder: other sites share a
+    // github.io origin.
+    if (!/^\/[^/\\]/.test(next) || next.indexOf(TN.base) !== 0) next = TN.base;
+
+    // Arriving with a return path means something turned them away. Most often
+    // that is the single-session rule: signing in elsewhere ended this session,
+    // and the displaced device deserves to be told why rather than left to
+    // guess at a form it has already filled in once.
+    var why = params.get('why');
+    if (why === 'pending' || why === 'suspended') {
+      var n0 = TN.el('#notice');
+      n0.hidden = false; n0.className = 'notice notice--warning';
+      n0.innerHTML = '<div>' + (why === 'pending' ? 'This account is waiting for admin approval. You can sign in once it is approved.' : 'This account has been suspended.') + '</div>';
+    } else if (params.get('next') && params.get('next') !== TN.base) {
+      var notice = TN.el('#notice');
+      notice.hidden = false;
+      notice.className = 'notice';
+      notice.innerHTML = '<div>Sign in to continue. If you were signed in a moment ago, ' +
+        'this account was opened on another device — only one is allowed at a time.</div>';
+    }
+
+    TN.el('#form').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var box = TN.el('#error');
+      box.hidden = true;
+      try {
+        await TN.api('/api/auth/login', {
+          method: 'POST',
+          body: { email: TN.el('#email').value, password: TN.el('#password').value }
+        });
+        location.href = next;
+      } catch (err) {
+        box.hidden = false;
+        box.className = 'notice notice--danger';
+        box.innerHTML = '<div>' + TN.esc(err.message) + '</div>';
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

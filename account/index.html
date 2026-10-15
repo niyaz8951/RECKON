@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <title>Account — RECKON</title>
+</head>
+<body data-title="Account">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+  <main id="main" class="wrap acct">
+    <!-- Who you are, with the photo as the button that changes it. -->
+    <section class="acct-head" aria-label="Your profile">
+      <button type="button" class="acct-photo" id="photo-btn" aria-label="Change your photo">
+        <span id="photo-slot"><span class="avatar avatar--lg" aria-hidden="true">·</span></span>
+        <span class="acct-photo__badge" data-icon="camera" data-icon-size="14"></span>
+      </button>
+      <div class="acct-head__text">
+        <h1 id="hello">Account</h1>
+        <p class="muted" id="sub"></p>
+      </div>
+    </section>
+    <input type="file" id="photo-file" accept="image/*" hidden>
+
+    <div class="list-group">
+      <p class="list-group__title">Profile</p>
+      <div class="list-group__card">
+        <button type="button" class="list-row" id="row-name"><span class="list-row__icon" data-icon="user"></span><span class="list-row__label">Name</span><span class="list-row__value" id="val-name"></span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+        <button type="button" class="list-row" id="row-photo"><span class="list-row__icon" data-icon="camera"></span><span class="list-row__label">Photo</span><span class="list-row__value" id="val-photo">Add</span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+        <div class="list-row list-row--static"><span class="list-row__icon" data-icon="message-circle"></span><span class="list-row__label">Email</span><span class="list-row__value" id="val-email"></span></div>
+      </div>
+    </div>
+
+    <div class="list-group">
+      <p class="list-group__title">App settings</p>
+      <div class="list-group__card">
+        <a class="list-row" href="../kept/settings/"><span class="list-row__icon" data-icon="wallet"></span><span class="list-row__label">KEPT<small>Currency, target, your data</small></span><span class="list-row__chev" data-icon="chevron-right"></span></a>
+      </div>
+    </div>
+
+    <div class="list-group">
+      <p class="list-group__title">Appearance</p>
+      <div class="list-group__card">
+        <div class="list-row list-row--static"><span class="list-row__icon" data-icon="sun"></span><span class="list-row__label">Theme</span>
+          <div class="segmented" id="theme-seg" role="group" aria-label="Theme">
+            <button type="button" data-t="system" aria-pressed="false">Auto</button><button type="button" data-t="light" aria-pressed="false">Light</button><button type="button" data-t="dark" aria-pressed="false">Dark</button>
+          </div></div>
+      </div>
+    </div>
+
+    <div class="list-group">
+      <p class="list-group__title">Security</p>
+      <div class="list-group__card">
+        <button type="button" class="list-row" id="row-pw"><span class="list-row__icon" data-icon="key"></span><span class="list-row__label">Change password<small>Signs you out everywhere</small></span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+      </div>
+    </div>
+
+    <div class="list-group">
+      <p class="list-group__title">This device</p>
+      <div class="list-group__card" id="device-card">
+        <button type="button" class="list-row" id="row-install" hidden><span class="list-row__icon" data-icon="smartphone"></span><span class="list-row__label">Install the app<small>Opens full screen from your home screen</small></span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+        <div class="list-row list-row--static" id="row-ios" hidden><span class="list-row__icon" data-icon="smartphone"></span><span class="list-row__label">Install the app<small>In Safari: Share → Add to Home Screen</small></span></div>
+        <div class="list-row list-row--static" id="row-installed" hidden><span class="list-row__icon" data-icon="check"></span><span class="list-row__label">Running as an installed app</span></div>
+        <button type="button" class="list-row" id="row-clear"><span class="list-row__icon" data-icon="trash-2"></span><span class="list-row__label">Clear data on this device<small>Saved copies and cached pages. Nothing on the server.</small></span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+      </div>
+    </div>
+
+    <div class="list-group" id="admin-group" hidden>
+      <p class="list-group__title">Administration</p>
+      <div class="list-group__card">
+        <a class="list-row" href="../admin/"><span class="list-row__icon" data-icon="shield"></span><span class="list-row__label">Admin<small>Accounts, settings, health</small></span><span class="list-row__chev" data-icon="chevron-right"></span></a>
+      </div>
+    </div>
+
+    <div class="list-group">
+      <div class="list-group__card">
+        <button type="button" class="list-row list-row--danger" data-signout>Sign out</button>
+      </div>
+      <p class="list-group__note" id="role-note"></p>
+    </div>
+  </main>
+
+  <!-- Name -->
+  <dialog class="sheet" id="name-sheet" aria-labelledby="name-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="name-title">Your name</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <form id="name-form" class="stack">
+        <div class="field"><label for="name-in">Name</label><input id="name-in" type="text" maxlength="80" autocomplete="name" required></div>
+        <p class="hint">Used in greetings across the apps.</p>
+        <div class="sheet__actions"><button type="button" class="btn btn--ghost" data-close>Cancel</button><button type="submit" class="btn btn--primary">Save</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Photo -->
+  <dialog class="sheet" id="photo-sheet" aria-labelledby="photo-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="photo-title">Photo</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="stack">
+        <button type="button" class="btn btn--primary btn--block" id="photo-pick"><span data-icon="camera"></span> Choose a photo</button>
+        <button type="button" class="btn btn--danger btn--block" id="photo-remove">Remove photo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Password -->
+  <dialog class="sheet" id="pw-sheet" aria-labelledby="pw-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="pw-title">Change password</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <form id="pwform" class="stack">
+        <div class="field"><label for="cur">Current password</label><input id="cur" type="password" autocomplete="current-password" required></div>
+        <div class="field"><label for="nw">New password</label><input id="nw" type="password" autocomplete="new-password" minlength="8" required></div>
+        <p class="hint">At least 8 characters. Every device is signed out afterwards.</p>
+        <div class="sheet__actions"><button type="button" class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" type="submit">Change password</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <footer data-site-footer></footer>
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <script src="../account/account.js?v=2"></script>
+</body>
+</html>

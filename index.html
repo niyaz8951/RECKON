@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="assets/css/global.css?v=34">
+  <title>RECKON</title>
+  <meta name="description" content="RECKON — a private hub for personal apps. Sign in required.">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <!-- The launcher. One tile per app, drawn from the registry in global.js,
+       and nothing else: no feed, no stats, no "recent". Each app owns its
+       own front door. -->
+  <main id="main" class="wrap launcher">
+    <div class="launcher__head">
+      <p class="eyebrow">Apps</p>
+      <h1 id="greeting">Hello.</h1>
+      <p>Pick an app. Everything here is yours alone and stays inside this account.</p>
+    </div>
+    <div class="tiles" id="tiles" aria-busy="true"></div>
+  </main>
+
+  <footer data-site-footer></footer>
+  <script src="assets/js/config.js?v=2"></script>
+  <script src="assets/vendor/supabase.js?v=1"></script>
+  <script src="assets/js/db.js?v=2"></script>
+  <script src="assets/js/routes-core.js?v=1"></script>
+  <script src="assets/js/global.js?v=37"></script>
+  <script src="assets/js/pwa.js?v=5"></script>
+  <script>
+  (function () {
+    'use strict';
+    TN.ready(async function (e) {
+      var user = await TN.guard();
+      var first = (user.name || user.email).split(/[ @]/)[0];
+      TN.el('#greeting').textContent = 'Hello, ' + first + '.';
+      var tiles = TN.el('#tiles');
+      tiles.innerHTML = TN.apps.map(function (a) {
+        return '<a class="tile" href="' + TN.esc(a.href) + '"' + (a.accent ? ' data-app="' + TN.esc(a.accent) + '"' : '') + '>' +
+          '<span class="tile__icon">' + TN.icon(a.icon, 22) + '</span>' +
+          '<span class="tile__title">' + TN.esc(a.title) + '</span>' +
+          '<span class="tile__tag">' + TN.esc(a.tagline || '') + '</span>' +
+          '<span class="tile__foot">Open ' + TN.icon('arrow-right', 16) + '</span></a>';
+      }).join('');
+      tiles.setAttribute('aria-busy', 'false');
+    });
+  })();
+  </script>
+</body>
+</html>

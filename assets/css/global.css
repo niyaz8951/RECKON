@@ -1,0 +1,1122 @@
+/* RECKON — global.css (v5, the app hub)
+   Single source of truth for every token in light and dark mode.
+   Nothing outside this file may hardcode a colour, font or spacing value. */
+
+/* ------------------------------------------------------------ fonts */
+/* Self-hosted (latin subset, from the fontsource builds of the same three
+   families Google Fonts served). Why: the Google Fonts stylesheet was a
+   render-blocking request to a third party on every page, text reflowed on
+   every cold load, and the service worker could not cache it. Local files
+   sit under /assets/, so they are immutable-cached and offline like every
+   other asset. `font-display: swap` paints text at once in the fallback
+   face and swaps when the file lands — never a blank page waiting on type. */
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/sora-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/sora-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Sora'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/sora-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/inter-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/inter-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/inter-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2'); }
+
+:root {
+  /* Colour */
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-primary: #2f5fff;
+  --color-primary-dark: #1e3fcc;
+  --color-accent: #00c2a8;
+  --color-text: #14161a;
+  --color-text-muted: #5c6270;
+  --color-border: #e3e5ea;
+  --color-success: #1fa971;
+  --color-warning: #e0a100;
+  --color-danger: #e0432f;
+
+  /* [NEW] tint + depth values needed by the two-layer access UI */
+  --color-surface-sunken: #eef0f5;
+  --color-primary-tint: rgba(47, 95, 255, 0.08);
+  --color-accent-tint: rgba(0, 194, 168, 0.12);
+  --color-warning-tint: rgba(224, 161, 0, 0.12);
+  --color-danger-tint: rgba(224, 67, 47, 0.10);
+  --color-overlay: rgba(20, 22, 26, 0.45);
+
+  /* Typography */
+  --font-heading: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 72px;   /* [NEW] section rhythm on marketing pages */
+
+  /* Radius & shadow */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;                                  /* hero cards */
+  --shadow-card: 0 2px 8px rgba(20, 22, 26, 0.06);
+  --shadow-lifted: 0 10px 28px rgba(20, 22, 26, 0.10); /* [NEW] hover + modal */
+
+  --maxw: 1100px;
+  --maxw-wide: 1360px; /* [NEW] the two workbench screens (map, knowledge admin) */
+
+  /* [NEW] The page side gutter. Three page containers had grown their own
+     copy of this value and two of them had drifted to --space-3 on mobile,
+     so the knowledge and process-map screens sat 8px tighter than every
+     other page. One token, referenced by every container, means they cannot
+     drift apart again. The value is --space-4 per the design system. */
+  --gutter: var(--space-4);
+
+  /* App accents. An app may remap --color-primary only, through data-app on
+     <html>; surfaces, text, borders, fonts and spacing stay shared. The pair
+     is defined here for both modes and mapped once, below the dark block. */
+  --kept-primary: #1fa971;
+  --kept-primary-dark: #15834f;
+  --kept-primary-tint: rgba(31, 169, 113, 0.10);
+  --spent-primary: #d9731a;      /* amber: hours, daylight */
+  --spent-primary-dark: #b25c0f;
+  --spent-primary-tint: rgba(217, 115, 26, 0.10);
+  --decided-primary: #6b4fd8;    /* violet: judgement */
+  --decided-primary-dark: #563bbd;
+  --decided-primary-tint: rgba(107, 79, 216, 0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { color-scheme: dark; }
+}
+:root[data-theme='dark'], html[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0f1115;
+  --color-surface: #171a20;
+  --color-surface-sunken: #1f232b;
+  --color-text: #eef0f4;
+  --color-text-muted: #98a0b0;
+  --color-border: #2a2f39;
+  --color-primary: #7d9bff;
+  --color-primary-dark: #5c7fff;
+  --color-primary-tint: rgba(125, 155, 255, 0.14);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lifted: 0 10px 28px rgba(0, 0, 0, 0.5);
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --kept-primary: #3ccf8e;
+  --kept-primary-dark: #2bb57a;
+  --kept-primary-tint: rgba(60, 207, 142, 0.16);
+  --spent-primary: #f0984a;
+  --spent-primary-dark: #e2842f;
+  --spent-primary-tint: rgba(240, 152, 74, 0.16);
+  --decided-primary: #9d87f0;
+  --decided-primary-dark: #8a71e8;
+  --decided-primary-tint: rgba(157, 135, 240, 0.16);
+}
+
+/* The accent map. KEPT CSS never says green; it says --color-primary, like
+   every other page, and this block is what makes that green. A future app
+   with its own accent adds a token pair above and one line here.
+   `:root[data-app]` and not `[data-app]`: the dark block above is
+   `:root[data-theme='dark']`, and a bare attribute selector lost to it, so
+   KEPT turned blue in dark mode. Equal specificity, later in the file, wins. */
+:root[data-app='kept'] {
+  --color-primary: var(--kept-primary);
+  --color-primary-dark: var(--kept-primary-dark);
+  --color-primary-tint: var(--kept-primary-tint);
+}
+:root[data-app='spent'] {
+  --color-primary: var(--spent-primary);
+  --color-primary-dark: var(--spent-primary-dark);
+  --color-primary-tint: var(--spent-primary-tint);
+}
+:root[data-app='decided'] {
+  --color-primary: var(--decided-primary);
+  --color-primary-dark: var(--decided-primary-dark);
+  --color-primary-tint: var(--decided-primary-tint);
+}
+
+/* ------------------------------------------------------------ base */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+/* `hidden` must always win. Without this, any component that sets its own
+   display (.kp-hub is a grid) stays on screen when a script hides it — which
+   is how an opened Insights view ended up rendered underneath the tiles.
+   The !important earns its place: it is the attribute's whole meaning. */
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; line-height: 1.25; margin: 0; }
+h1 { font-size: 2rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.375rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.0625rem; }
+p { margin: 0; }
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; display: block; }
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: var(--space-3); top: -60px; z-index: 100;
+  background: var(--color-surface); padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-card);
+}
+.skip-link:focus { top: var(--space-3); }
+
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
+.stack > * + * { margin-top: var(--space-3); }
+.muted { color: var(--color-text-muted); }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------- header */
+.site-header {
+  position: sticky; top: 0; z-index: 40;
+  /* The inner row is 60px. Reserving it on the element itself means the
+     page does not shift when the chrome is filled in. */
+  min-height: calc(60px + var(--safe-top, 0px));
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+.site-header__inner {
+  display: flex; align-items: center; gap: var(--space-4);
+  height: 60px; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-heading); font-weight: 600; color: var(--color-text);
+  letter-spacing: -0.02em; text-decoration: none; flex: none;
+}
+.brand:hover { text-decoration: none; }
+.brand__mark {
+  width: 26px; height: 26px; border-radius: var(--radius-sm);
+  background: var(--color-primary); color: #fff;
+  display: grid; place-items: center; font-size: 0.8125rem;
+}
+.site-nav { display: flex; gap: var(--space-1); flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.site-nav::-webkit-scrollbar { display: none; }
+.site-nav a {
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+  color: var(--color-text-muted); font-size: 0.9375rem; white-space: nowrap;
+}
+.site-nav a:hover { background: var(--color-surface-sunken); color: var(--color-text); text-decoration: none; }
+.site-nav a[aria-current='page'] { color: var(--color-text); background: var(--color-primary-tint); }
+.header-actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+
+/* ---------------------------------------------------------- footer */
+.site-footer {
+  margin-top: var(--space-7); border-top: 1px solid var(--color-border);
+  background: var(--color-surface); padding: var(--space-5) 0;
+}
+.site-footer__inner {
+  max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter);
+  display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between;
+  color: var(--color-text-muted); font-size: 0.875rem;
+}
+.site-footer nav { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+/* --------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  font-family: var(--font-body); font-size: 0.9375rem; font-weight: 500;
+  padding: var(--space-2) var(--space-3); min-height: 40px;
+  border-radius: var(--radius-md); border: 1px solid transparent;
+  background: var(--color-surface-sunken); color: var(--color-text);
+  cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s, transform .1s;
+}
+.btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn[disabled], .btn[aria-disabled='true'] { opacity: .55; cursor: not-allowed; }
+.btn--primary { background: var(--color-primary); color: #fff; }
+.btn--primary:hover { background: var(--color-primary-dark); }
+.btn--ghost { background: transparent; border-color: var(--color-border); }
+.btn--ghost:hover { background: var(--color-surface-sunken); }
+.btn--quiet { background: transparent; color: var(--color-text-muted); }
+.btn--quiet:hover { background: var(--color-surface-sunken); color: var(--color-text); }
+.btn--danger { background: var(--color-danger-tint); color: var(--color-danger); }
+.btn--sm { min-height: 32px; padding: var(--space-1) var(--space-2); font-size: 0.875rem; }
+.btn--block { width: 100%; }
+.btn svg { width: 18px; height: 18px; }
+
+/* ----------------------------------------------------------- forms */
+.field { display: block; }
+.field + .field { margin-top: var(--space-3); }
+.field > label, .label {
+  display: block; font-size: 0.875rem; font-weight: 500;
+  margin-bottom: var(--space-1); color: var(--color-text);
+}
+.hint { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: var(--space-1); }
+input[type='text'], input[type='email'], input[type='password'], input[type='number'],
+input[type='url'], input[type='search'], select, textarea {
+  width: 100%; font-family: var(--font-body); font-size: 0.9375rem;
+  color: var(--color-text); background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3); min-height: 40px;
+}
+textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+input:focus, select:focus, textarea:focus { border-color: var(--color-primary); outline-offset: 0; }
+/* Fields laid out side by side. `.field + .field` adds a top margin for the
+   normal stacked case; inside a row that same rule pushed every field after
+   the first down by one space unit, so Product and Factory sat on different
+   baselines. Cancel it here and align on the top edge, so labels of unequal
+   length (one wraps, one does not) still leave the inputs level. */
+.field-row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: flex-start; }
+.field-row > * { flex: 1 1 180px; }
+.field-row > .field + .field { margin-top: 0; }
+
+.segmented { display: inline-flex; background: var(--color-surface-sunken); border-radius: var(--radius-md); padding: var(--space-1); gap: var(--space-1); }
+.segmented button {
+  border: 0; background: transparent; color: var(--color-text-muted);
+  font-family: var(--font-body); font-size: 0.875rem; font-weight: 500;
+  padding: var(--space-1) var(--space-3); min-height: 32px;
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+.segmented button[aria-pressed='true'] { background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-card); }
+
+/* ----------------------------------------------------------- cards */
+.panel { min-width: 0;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: var(--space-4);
+}
+.panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+
+.grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+.card {
+  position: relative; display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-card);
+  padding: var(--space-4); color: var(--color-text); text-decoration: none;
+  transition: box-shadow .18s, border-color .18s, transform .18s;
+}
+a.card:hover { text-decoration: none; box-shadow: var(--shadow-lifted); border-color: var(--color-primary); transform: translateY(-2px); }
+.card__icon {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  background: var(--color-primary-tint); color: var(--color-primary);
+  display: grid; place-items: center;
+}
+.card__icon svg { width: 20px; height: 20px; }
+.card__title { font-family: var(--font-heading); font-weight: 600; font-size: 1rem; }
+.card__desc { color: var(--color-text-muted); font-size: 0.875rem; }
+.card__foot { margin-top: auto; padding-top: var(--space-2); display: flex; align-items: center; gap: var(--space-2); }
+.card--locked { background: var(--color-surface-sunken); }
+.card--locked .card__icon { background: var(--color-warning-tint); color: var(--color-warning); }
+
+/* The access chip is the spine of the two-layer model: every card says
+   plainly which layer it belongs to. */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 2px var(--space-2);
+  border-radius: 999px; border: 1px solid var(--color-border); color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.chip svg { width: 12px; height: 12px; }
+.chip--free { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 40%, transparent); }
+.chip--auth { color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 40%, transparent); }
+.chip--restricted { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
+.chip--danger { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 40%, transparent); }
+.chip--solid { background: var(--color-primary); color: #fff; border-color: transparent; }
+
+/* ------------------------------------------------------ page parts */
+.page-head { padding: var(--space-6) 0 var(--space-4); }
+.page-head h1 { margin-bottom: var(--space-2); }
+.page-head p { color: var(--color-text-muted); max-width: 60ch; }
+/* One-line restatement of what the page does, sitting between the h1 and the
+   longer description. Heavier than body copy, lighter than a heading. */
+.page-head__lede {
+  font-family: var(--font-heading); font-size: 1.0625rem; font-weight: 500;
+  color: var(--color-text); margin-bottom: var(--space-2);
+}
+main { padding-bottom: var(--space-6); }
+.section-block { margin-top: var(--space-6); }
+.section-block__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+
+/* The hero sits on `.wrap hero`, so it inherits the side gutter from `.wrap`.
+   Setting `padding` as a shorthand here would reset left and right to zero —
+   same specificity, later in the file — and the whole first screen would run
+   edge to edge on a phone. Vertical padding is set on its own axis so the
+   gutter survives. The same applies to any future class paired with `.wrap`. */
+.hero { padding-top: var(--space-7); padding-bottom: var(--space-5); }
+.hero h1 { font-size: clamp(1.75rem, 6vw, 2.75rem); max-width: 18ch; margin-bottom: var(--space-3); }
+.hero p { font-size: 1.0625rem; color: var(--color-text-muted); max-width: 56ch; }
+.hero__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-4); }
+.layer-strip {
+  display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: var(--space-5);
+}
+.layer {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-4); background: var(--color-surface);
+}
+.layer--member { border-color: var(--color-primary); background: var(--color-primary-tint); }
+.layer h3 { margin-bottom: var(--space-2); }
+.layer ul { margin: var(--space-2) 0 0; padding-left: var(--space-3); color: var(--color-text-muted); font-size: 0.9375rem; }
+
+.notice {
+  border: 1px solid var(--color-border); border-left: 3px solid var(--color-primary);
+  background: var(--color-surface); border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4); display: flex; gap: var(--space-3); align-items: flex-start;
+}
+.notice--warning { border-left-color: var(--color-warning); }
+.notice--danger { border-left-color: var(--color-danger); }
+.notice--success { border-left-color: var(--color-success); }
+
+/* ------------------------------------------------------ skeletons */
+/* Placeholder blocks shown while a screen waits for its data. One shared
+   shape so every app's loading state looks the same. Use .skeleton on a
+   block and give it a size; .skeleton--text is a line of copy. */
+.skeleton {
+  display: block; border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--color-surface-sunken) 25%, var(--color-border) 50%, var(--color-surface-sunken) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+.skeleton--text { height: 0.9em; margin: 0.35em 0; border-radius: var(--radius-sm); }
+.skeleton--text.is-short { width: 55%; }
+.skeleton--card { height: 120px; }
+@keyframes skeleton-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ------------------------------------------------ view transitions */
+/* Screen switches inside an app cross-fade (and nothing else) when the
+   browser supports it. Short on purpose: motion that is noticed is motion
+   that is too long. Reduced-motion users get a cut. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .12s; animation-timing-function: ease; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
+
+.empty {
+  text-align: center; padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border); border-radius: var(--radius-md); color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------- tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+table.data { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+table.data th, table.data td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+table.data th { font-family: var(--font-heading); font-weight: 600; font-size: 0.8125rem; color: var(--color-text-muted); background: var(--color-surface-sunken); position: sticky; top: 0; }
+table.data tr:last-child td { border-bottom: 0; }
+table.data td.num, table.data th.num { font-family: var(--font-mono); font-size: 0.875rem; }
+
+/* ---------------------------------------------------------- toasts */
+#toast-region { position: fixed; right: var(--space-3); bottom: var(--space-3); z-index: 90; display: flex; flex-direction: column; gap: var(--space-2); }
+@media (max-width: 640px) { body.has-tab-bar #toast-region, body.has-app-bar #toast-region { bottom: calc(var(--tab-bar-h) + var(--safe-bottom) + var(--space-3)); left: var(--space-3); } }
+.toast {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lifted); padding: var(--space-3) var(--space-4); font-size: 0.9375rem; max-width: 320px;
+}
+.toast--error { border-left-color: var(--color-danger); }
+.toast--success { border-left-color: var(--color-success); }
+
+/* ---------------------------------------------------------- modals */
+dialog.modal {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lifted); background: var(--color-surface); color: var(--color-text);
+  padding: var(--space-4); width: min(560px, calc(100vw - var(--space-4) * 2)); max-height: 85vh;
+}
+dialog.modal::backdrop { background: var(--color-overlay); }
+dialog.modal h2 { margin-bottom: var(--space-3); }
+.modal__actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-4); }
+
+/* ----------------------------------------------------------- admin */
+.admin-shell { display: grid; grid-template-columns: 220px 1fr; gap: var(--space-4); align-items: start; padding-top: var(--space-4); }
+.admin-nav { position: sticky; top: 76px; display: flex; flex-direction: column; gap: var(--space-1); }
+.admin-nav button {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%; text-align: left;
+  border: 0; background: transparent; color: var(--color-text-muted);
+  font-family: var(--font-body); font-size: 0.9375rem; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md); cursor: pointer; min-height: 40px;
+}
+.admin-nav button:hover { background: var(--color-surface-sunken); color: var(--color-text); }
+.admin-nav button[aria-current='true'] { background: var(--color-primary-tint); color: var(--color-primary); font-weight: 500; }
+.admin-nav svg { width: 18px; height: 18px; }
+.stat-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.stat { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); box-shadow: var(--shadow-card); }
+.stat__value { font-family: var(--font-heading); font-size: 1.75rem; font-weight: 600; line-height: 1.1; }
+.stat__label { font-family: var(--font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-top: var(--space-1); }
+.toolbar { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-3); }
+.toolbar input[type='search'], .toolbar select { max-width: 220px; }
+.tree-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
+.tree-row--child { padding-left: var(--space-6); background: var(--color-surface-sunken); }
+.tree-row__main { flex: 1; min-width: 0; }
+.tree-row__title { font-weight: 500; }
+.row-actions { display: flex; gap: var(--space-1); flex: none; }
+
+  display: flex; gap: var(--space-2); padding: var(--space-2); border-radius: var(--radius-sm);
+  color: var(--color-text-muted); font-size: 0.9375rem;
+}
+  margin: 0; padding-left: var(--space-4); border-left: 3px solid var(--color-accent);
+  font-size: 1.125rem; color: var(--color-text-muted);
+}
+  background: var(--color-surface-sunken); border-radius: var(--radius-md);
+  padding: var(--space-3); overflow-x: auto; font-family: var(--font-mono); font-size: 0.875rem;
+}
+.chart { width: 100%; }
+.chart text { font-family: var(--font-mono); font-size: 10px; fill: var(--color-text-muted); }
+
+.paywall {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  background: var(--color-surface); box-shadow: var(--shadow-card);
+  padding: var(--space-5); text-align: center;
+}
+.paywall .chip { margin-bottom: var(--space-3); }
+
+/* ----------------------------------------------------------- auth pages */
+.auth-wrap { max-width: 420px; margin: var(--space-7) auto; padding: 0 var(--gutter); }
+.auth-wrap .panel { padding: var(--space-5); }
+
+/* ------------------------------------------------------- sign-in landing
+   The only page a signed-out visitor can reach, so it is the whole first
+   impression of the site rather than a utility form. It keeps the home
+   page's hero treatment — same type scale, same accented headline — with
+   the form as the second column instead of a call-to-action button.
+
+   Deliberately no nav and no tool links: there is nothing a signed-out
+   visitor may open, and offering doors that all lead back here is worse
+   than offering none. */
+.auth-landing {
+  display: grid; gap: var(--space-6); align-items: center;
+  grid-template-columns: 1.1fr minmax(340px, 420px);
+  max-width: var(--maxw); margin: 0 auto;
+  padding: var(--space-7) var(--gutter) var(--space-6);
+  min-height: calc(100vh - 60px);
+}
+.auth-landing__copy h1 {
+  font-size: clamp(1.75rem, 6vw, 2.75rem); max-width: 16ch;
+  margin-bottom: var(--space-3);
+}
+.auth-landing__copy h1 em { font-style: normal; color: var(--color-primary); }
+.auth-landing__copy p { font-size: 1.0625rem; color: var(--color-text-muted); max-width: 48ch; }
+.auth-landing .panel { padding: var(--space-5); }
+
+/* A bare brand row rather than the site header: the header renders nav from
+   /api/catalog, which a signed-out visitor cannot call. */
+.auth-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  max-width: var(--maxw); margin: 0 auto;
+  padding: var(--space-4) var(--gutter) 0;
+}
+
+/* Below this the two columns cannot both keep their minimum width, so the
+   form stacks under the copy rather than being squeezed. */
+@media (max-width: 900px) {
+  .auth-landing {
+    grid-template-columns: 1fr; gap: var(--space-5);
+    padding-top: var(--space-5); min-height: 0; align-items: start;
+  }
+  .auth-landing__copy h1 { max-width: none; }
+}
+
+
+  position: sticky; top: 60px; z-index: 30; height: 3px;
+  background: var(--color-border);
+}
+
+  display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;
+  padding: var(--space-2) 0 var(--space-3); margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Full screen: drop every piece of site chrome and centre the column. */
+
+/* The tab bar is fixed and body padding reserves its height. Hiding the bar
+   without releasing the padding leaves a strip of dead space at the bottom of
+   a full-screen page — which is most of what "full screen" was meant to
+   remove. The !important earns its place: .has-tab-bar is set on the same
+   element, so specificity alone cannot settle it. */
+
+/* ------------------------------------------------ markdown editor (v3) */
+.md-input {
+  width: 100%; min-height: 60vh; resize: vertical;
+  font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.7;
+  tab-size: 2;
+}
+
+
+/* ---------------------------------------------------- home page (v4) */
+.hero h1 em {
+  font-style: normal; color: var(--color-primary);
+}
+.hero__lede { font-size: 1.125rem; color: var(--color-text-muted); max-width: 52ch; }
+.layer h3 { margin-top: var(--space-2); }
+.layer .chip { margin-bottom: var(--space-1); }
+
+/* Flagship block: copy on the left, the three steps as a numbered rail. */
+.feature {
+  display: grid; gap: var(--space-5); grid-template-columns: 1.1fr 1fr;
+  align-items: center; margin-top: var(--space-6);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+}
+.feature h2 { font-size: 1.75rem; margin: var(--space-1) 0 var(--space-2); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.steps li {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3);
+  align-items: baseline; padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.steps li:last-child { border-bottom: 0; padding-bottom: 0; }
+.steps__n {
+  grid-row: span 2; font-family: var(--font-mono); font-size: 1.25rem;
+  color: var(--color-primary); opacity: .7;
+}
+.steps__t { font-family: var(--font-heading); font-weight: 600; }
+.steps__d { grid-column: 2; color: var(--color-text-muted); font-size: 0.9375rem; }
+
+/* Editorial index — deliberately not the card grid used on section pages. */
+.index-list { border-top: 1px solid var(--color-border); }
+.index-row {
+  display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: var(--space-3); align-items: center;
+  padding: var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text); text-decoration: none;
+  transition: background .15s, padding-left .15s;
+}
+.index-row:hover, .index-row:focus-visible {
+  text-decoration: none; background: var(--color-surface); padding-left: var(--space-4);
+}
+.index-row__n {
+  font-family: var(--font-mono); font-size: 0.8125rem;
+  color: var(--color-text-muted); opacity: .6;
+}
+.index-row__main { display: grid; gap: 2px; min-width: 0; }
+.index-row__title { font-family: var(--font-heading); font-weight: 600; font-size: 1.25rem; letter-spacing: -0.01em; }
+.index-row__desc { color: var(--color-text-muted); font-size: 0.9375rem; }
+.index-row__go { color: var(--color-text-muted); opacity: 0; transform: translateX(-4px); transition: opacity .15s, transform .15s; }
+.index-row:hover .index-row__go, .index-row:focus-visible .index-row__go { opacity: 1; transform: none; }
+.index-row--locked .index-row__title { color: var(--color-text-muted); }
+
+@media (max-width: 720px) {
+  .feature { grid-template-columns: 1fr; padding: var(--space-4); }
+  .index-row { grid-template-columns: auto 1fr; }
+  .index-row__meta { grid-column: 2; }
+  .index-row__go { display: none; }
+}
+
+/* ------------------------------------------------------- responsive */
+@media (max-width: 860px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-nav { position: static; flex-direction: row; overflow-x: auto; }
+}
+@media (max-width: 560px) {
+  .site-header__inner { gap: var(--space-2); }
+  .site-nav { order: 3; width: 100%; }
+  h1 { font-size: 1.625rem; }
+  .panel, .card { padding: var(--space-3); }
+  /* 72px of dead space above the first line costs a third of a phone screen
+     before a word is read. The desktop rhythm is kept; the phone one is not. */
+  .hero { padding-top: var(--space-5); padding-bottom: var(--space-4); }
+  .page-head { padding-top: var(--space-5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ------------------------------------------- HVAC chart tokens (v7) */
+/* Categorical series colours for engineering charts. Semantic tokens
+   (--color-danger etc.) carry the wrong meaning on a chart series, so
+   these are a separate scale. Dark variants mirror the site's existing
+   explicit [data-theme='dark'] pattern. */
+:root {
+  --chart-1: #2f5fff;
+  --chart-2: #00c2a8;
+  --chart-3: #e0a100;
+  --chart-4: #8b5cf6;
+  --chart-5: #e0432f;
+  --chart-6: #1fa971;
+  --chart-7: #ec4899;
+  --chart-8: #5c6270;
+  --chart-grid: rgba(20, 22, 26, 0.10);
+  --chart-sensible: #2f5fff;
+  --chart-latent: #00c2a8;
+}
+:root[data-theme='dark'], html[data-theme='dark'] {
+  --chart-1: #7d9bff;
+  --chart-2: #3ddbc4;
+  --chart-3: #f0be3d;
+  --chart-4: #a78bfa;
+  --chart-5: #f4705d;
+  --chart-6: #4ec894;
+  --chart-7: #f472b6;
+  --chart-8: #98a0b0;
+  --chart-grid: rgba(238, 240, 244, 0.10);
+  --chart-sensible: #7d9bff;
+  --chart-latent: #3ddbc4;
+}
+
+
+/* ------------------------------------------------------- tab bar */
+.tab-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  display: none;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: var(--safe-bottom);
+}
+
+.tab-bar a {
+  flex: 1 1 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px;
+  /* 56px, not 44: the Apple and Android minimums are the point at which a
+     target stops being missed, not the point at which it feels good. */
+  min-height: var(--tab-bar-h);
+  padding: var(--space-2) 4px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+}
+
+.tab-bar a span {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.tab-bar a[aria-current="page"] { color: var(--color-primary); }
+.tab-bar a:active { background: var(--color-surface-sunken); }
+.tab-bar a:focus-visible {
+  outline: 2px solid var(--color-primary); outline-offset: -2px;
+}
+
+/* The bar covers the last ~56px of the page, so the footer and anything at
+   the end of a long form would otherwise sit underneath it permanently. */
+body.has-tab-bar { padding-bottom: calc(var(--tab-bar-h) + var(--safe-bottom)); }
+
+@media (max-width: 640px) {
+  .tab-bar { display: flex; }
+
+  /* The header nav is now duplicated by the tab bar. Two navs on a 375px
+     screen is one nav too many. */
+  .site-nav { display: none; }
+
+  .site-footer { padding-bottom: var(--space-5); }
+}
+
+/* ------------------------------------------------------- standalone */
+/* Installed to the home screen: there is no URL bar, no back gesture to a
+   previous site, and no browser chrome to borrow. */
+html[data-standalone="true"] {
+  /* Selecting text by accident while scrolling a list is a browser habit that
+     reads as broken in an app. Inputs and real prose are exempt below. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html[data-standalone="true"] input,
+html[data-standalone="true"] textarea,
+html[data-standalone="true"] [contenteditable],
+html[data-standalone="true"] pre,
+html[data-standalone="true"] code,
+html[data-standalone="true"] .kg-act__outcome-text {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Momentum scrolling inside panes, so a long list in the graph inspector
+   behaves the way every other list on the phone does. */
+.kg-tabpane, .admin-nav {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ------------------------------------------------------- touch targets */
+@media (pointer: coarse) {
+  .btn--sm { min-height: 40px; }
+  .btn { min-height: 44px; }
+  /* A remove link that sits 8px from an open link is a link you tap by
+     mistake, and this one deletes a book. */
+  .book-card__remove { min-height: 40px; padding-inline: var(--space-3); }
+  .shelf-group__head { padding: var(--space-4) 0; }
+}
+
+/* ------------------------------------------------------------- dialog
+   Native <dialog>, so focus trapping, Escape and the backdrop come from
+   the browser rather than from script that has to be kept correct.
+   Styled here because the element ships with a white box and a black
+   border that belong to no theme. */
+dialog {
+  width: min(440px, calc(100vw - var(--space-5)));
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lifted);
+}
+
+dialog::backdrop {
+  /* Deliberately not a theme token: ::backdrop sits outside the document,
+     so custom properties declared on :root do not reach it. */
+  background: rgba(10, 12, 16, 0.55);
+}
+
+dialog[open] { animation: dialog-in .14s ease-out; }
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[open] { animation: none; }
+}
+
+/* A phone keyboard covers the lower half of the screen, so a centred
+   dialog with a text field in it ends up behind the keyboard. */
+@media (max-width: 560px) {
+  dialog {
+    margin-top: var(--space-5);
+    margin-bottom: auto;
+  }
+}
+
+
+/* =====================================================================
+   The launcher (home page). One tile per app, nothing else.
+   ===================================================================== */
+.launcher { padding-top: var(--space-6); }
+.launcher__head { margin-bottom: var(--space-5); }
+.launcher__head h1 { font-size: clamp(1.75rem, 6vw, 2.5rem); margin-bottom: var(--space-2); }
+.launcher__head p { color: var(--color-text-muted); max-width: 48ch; }
+.tiles { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.tile {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-card);
+  color: inherit; text-decoration: none;
+  min-height: 150px;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.tile:hover { border-color: var(--color-primary); box-shadow: var(--shadow-lifted); text-decoration: none; transform: translateY(-1px); }
+.tile:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.tile__icon {
+  width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-tint); color: var(--color-primary);
+}
+.tile__icon svg { width: 22px; height: 22px; }
+/* Each app wears its own colour on the hub and in the tab bar, so the three
+   are told apart before a word is read: KEPT green, SPENT amber, DECIDED violet. */
+.tile[data-app='kept'] .tile__icon { background: var(--kept-primary-tint); color: var(--kept-primary); }
+.tile[data-app='spent'] .tile__icon { background: var(--spent-primary-tint); color: var(--spent-primary); }
+.tile[data-app='decided'] .tile__icon { background: var(--decided-primary-tint); color: var(--decided-primary); }
+.tile[data-app='kept']:hover { border-color: var(--kept-primary); }
+.tile[data-app='spent']:hover { border-color: var(--spent-primary); }
+.tile[data-app='decided']:hover { border-color: var(--decided-primary); }
+.tab-bar a[data-accent='kept'][aria-current='page'] { color: var(--kept-primary); }
+.tab-bar a[data-accent='spent'][aria-current='page'] { color: var(--spent-primary); }
+.tab-bar a[data-accent='decided'][aria-current='page'] { color: var(--decided-primary); }
+.tile__title { font-family: var(--font-heading); font-weight: 600; font-size: 1.125rem; }
+.tile__tag { color: var(--color-text-muted); font-size: 0.9375rem; }
+.tile__foot { margin-top: auto; display: flex; align-items: center; gap: var(--space-1); color: var(--color-primary); font-size: 0.875rem; font-weight: 500; }
+.tile__foot svg { width: 16px; height: 16px; }
+
+/* =====================================================================
+   In-app navigation. An app with several screens (KEPT) carries a row of
+   tabs under the site header on wide screens and, on a phone, replaces the
+   site tab bar with its own bottom bar — two fixed bars would eat a third
+   of a 375px screen. The app sets body.has-app-bar; the site bar steps
+   aside and the page padding is reserved once, not twice.
+   ===================================================================== */
+.app-bar {
+  display: flex; gap: var(--space-1); flex-wrap: wrap;
+  padding: var(--space-3) 0 0;
+}
+.app-bar a, .app-bar button {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 40px; padding: var(--space-2) var(--space-3);
+  border: 0; border-radius: var(--radius-md); background: transparent;
+  color: var(--color-text-muted); font: inherit; font-size: 0.9375rem; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+}
+.app-bar a:hover, .app-bar button:hover { background: var(--color-surface-sunken); color: var(--color-text); text-decoration: none; }
+.app-bar a[aria-current='page'], .app-bar button[aria-current='page'] { background: var(--color-primary-tint); color: var(--color-primary); }
+.app-bar svg { width: 18px; height: 18px; }
+.app-bar a:focus-visible, .app-bar button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+
+@media (max-width: 640px) {
+  .app-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+    flex-wrap: nowrap; gap: 0; padding: 0;
+    padding-bottom: var(--safe-bottom);
+    background: var(--color-surface); border-top: 1px solid var(--color-border);
+  }
+  .app-bar a, .app-bar button {
+    flex: 1 1 0; flex-direction: column; justify-content: center; gap: 2px;
+    min-height: var(--tab-bar-h); padding: var(--space-2) 4px;
+    border-radius: 0; font-size: 0.6875rem; line-height: 1.2;
+  }
+  .app-bar a[aria-current='page'], .app-bar button[aria-current='page'] { background: transparent; }
+  .app-bar svg { width: 20px; height: 20px; }
+  /* The raised primary action (KEPT's +). */
+  .app-bar .app-bar__fab {
+    flex: 0 0 64px; color: #fff;
+  }
+  .app-bar .app-bar__fab svg {
+    width: 44px; height: 44px; padding: 10px; border-radius: 50%;
+    background: var(--color-primary); box-shadow: var(--shadow-lifted);
+    margin-top: -18px;
+  }
+  body.has-app-bar .tab-bar { display: none; }
+  body.has-app-bar.has-tab-bar { padding-bottom: calc(var(--tab-bar-h) + var(--safe-bottom)); }
+}
+
+/* =====================================================================
+   Bottom sheet. Shared by every app that needs a quick form on a phone
+   (KEPT's add-entry sheet, Library's upload). Centred dialog on wide
+   screens, slides up from the bottom edge on a phone.
+   ===================================================================== */
+.sheet { border: 0; padding: 0; background: transparent; max-width: none; max-height: none; width: 100%; }
+.sheet::backdrop { background: rgba(10, 12, 16, 0.55); } /* not a token: ::backdrop cannot see :root */
+.sheet[open] { display: grid; place-items: center; position: fixed; inset: 0; margin: 0; width: 100%; height: 100%; }
+.sheet__panel {
+  width: min(560px, calc(100% - var(--space-4) * 2));
+  max-height: calc(100vh - var(--space-6));
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lifted);
+  padding: var(--space-4);
+}
+.sheet__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+.sheet__head h2 { font-size: 1.125rem; }
+.sheet__actions { display: flex; gap: var(--space-2); justify-content: flex-end; margin-top: var(--space-4); flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .sheet[open] { place-items: end center; }
+  .sheet__panel {
+    width: 100%; max-height: 92vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0;
+    padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  }
+}
+
+/* Amount-first inputs: a big number is faster to read and to type on a phone. */
+.input--amount { font-family: var(--font-mono); font-size: 1.75rem; text-align: right; }
+
+/* Numbers in finance tables. */
+table.data td.num, table.data th.num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.pos { color: var(--color-success); }
+.neg { color: var(--color-danger); }
+
+
+/* =====================================================================
+   v5 — the app shell on a phone.
+   One top bar (where you are + your photo), sub-pages that slide in with a
+   back bar, sheets that come up from the bottom and go away with a swipe,
+   and nothing that can push the page sideways. Wide screens keep the
+   website layout; everything below is scoped to touch or to ≤640px.
+   ===================================================================== */
+
+/* ------------------------------------------------------- header */
+.site-header__inner { min-width: 0; }
+/* The page or app name. On a phone it replaces the brand word and the nav
+   (both live in the tab bar there); on a wide screen the nav says it. */
+.site-header__title {
+  display: none; flex: 1; min-width: 0;
+  font-family: var(--font-heading); font-weight: 600; font-size: 1.0625rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.header-avatar { display: inline-flex; border-radius: 50%; flex: none; }
+.header-avatar:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.header-admin { display: inline-flex; }
+
+@media (max-width: 640px) {
+  .site-header__inner { height: 52px; gap: var(--space-2); }
+  .site-header { min-height: calc(52px + var(--safe-top, 0px)); }
+  .brand__name { display: none; }
+  .site-header__title { display: block; }
+  /* Theme and admin are rows in Account on a phone; the header keeps only
+     what you reach for constantly. */
+  .site-header [data-theme-toggle], .header-admin { display: none; }
+  /* An app has no website footer. */
+  .site-footer { display: none; }
+}
+
+/* ------------------------------------------------------- avatar */
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex: none;
+  object-fit: cover; display: inline-grid; place-items: center;
+  background: var(--color-primary-tint); color: var(--color-primary);
+  font-family: var(--font-heading); font-weight: 600; font-size: 0.8125rem;
+  border: 1px solid var(--color-border);
+}
+.avatar--lg { width: 72px; height: 72px; font-size: 1.5rem; }
+
+/* ------------------------------------------------------- nav bar */
+/* The bar on a sub-page: back on the left, the page's name in the middle.
+   On a phone it takes the site header's place (body.is-pushed hides that)
+   so a sub-page has one bar, like any native app. */
+.nav-bar {
+  /* Back keeps its whole label; the title takes the rest and truncates.
+     (Centring the title between equal columns cut "Insights" to "Insi…".) */
+  display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center;
+  gap: var(--space-2); min-height: 52px; margin-bottom: var(--space-3);
+}
+.nav-bar__back {
+  justify-self: start; display: inline-flex; align-items: center; gap: 2px;
+  min-height: 44px; padding: 0 var(--space-2) 0 0; margin-left: -6px;
+  border: 0; background: transparent; color: var(--color-primary);
+  font: inherit; font-size: 1rem; cursor: pointer; text-decoration: none; max-width: 100%;
+}
+.nav-bar__back span { white-space: nowrap; }
+.nav-bar__back svg { width: 24px; height: 24px; flex: none; }
+.nav-bar__back:hover { text-decoration: none; }
+.nav-bar__back:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.nav-bar__title {
+  font-family: var(--font-heading); font-weight: 600; font-size: 1.0625rem; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;
+}
+.nav-bar__end { justify-self: end; }
+/* Focus is moved to the title when a page opens, so a screen reader
+   announces where you are. It is not a control; it gets no ring. */
+.nav-bar__title:focus, .kp-head h1:focus { outline: none; }
+@media (max-width: 640px) {
+  body.is-pushed .site-header { display: none; }
+  .nav-bar {
+    position: sticky; top: 0; z-index: 40;
+    margin: 0 calc(-1 * var(--gutter)) var(--space-3);
+    padding: var(--safe-top) var(--gutter) 0;
+    min-height: calc(52px + var(--safe-top));
+    background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* --------------------------------------------------- settings list */
+/* Grouped rows, the way a phone's Settings app reads: a quiet heading, a
+   card of rows, each row a label, an optional value and a chevron. */
+.list-group { margin-top: var(--space-4); }
+.list-group__title {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--color-text-muted); margin: 0 0 var(--space-2) var(--space-3);
+}
+.list-group__card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-card); overflow: hidden;
+}
+.list-group__note { font-size: 0.8125rem; color: var(--color-text-muted); margin: var(--space-2) var(--space-3) 0; }
+.list-row {
+  display: flex; align-items: center; gap: var(--space-3); width: 100%;
+  min-height: 52px; padding: var(--space-2) var(--space-3);
+  border: 0; border-top: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+.list-group__card > .list-row:first-child { border-top: 0; }
+.list-row:hover { background: var(--color-surface-sunken); text-decoration: none; }
+.list-row:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+.list-row__icon {
+  width: 32px; height: 32px; border-radius: var(--radius-sm); flex: none;
+  display: grid; place-items: center; background: var(--color-primary-tint); color: var(--color-primary);
+}
+.list-row__icon svg { width: 18px; height: 18px; }
+.list-row__label { flex: 1; min-width: 0; }
+.list-row__label small { display: block; color: var(--color-text-muted); font-size: 0.8125rem; }
+.list-row__value { color: var(--color-text-muted); font-size: 0.9375rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.list-row__chev { color: var(--color-text-muted); flex: none; display: inline-flex; }
+.list-row__chev svg { width: 18px; height: 18px; }
+.list-row--danger { color: var(--color-danger); justify-content: center; font-weight: 500; }
+.list-row--static { cursor: default; }
+.list-row--static:hover { background: transparent; }
+.list-row .segmented { flex: none; }
+/* A segmented control inside a row is compact, so the row's label keeps
+   its word ("Theme", not "Then"). */
+.list-row .segmented { padding: 2px; }
+.list-row .segmented button { min-height: 32px; padding: 4px 10px; font-size: 0.875rem; }
+.list-row__label { min-width: 3.5em; }
+
+/* ------------------------------------------------------- touch */
+/* No double-tap-zoom delay on controls, no text selection or iOS callout
+   when a finger rests on a bar, a row or a button. */
+a, button, [role='button'], label, summary { touch-action: manipulation; }
+.tab-bar, .app-bar, .btn, .list-row, .nav-bar, .tile, .kp-hub button {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+html { overscroll-behavior-x: none; }
+/* Pressed feedback on touch screens, where :hover never comes. */
+@media (hover: none) {
+  .btn:active, .tile:active, .list-row:active, .tab-bar a:active, .app-bar button:active { transform: scale(.97); }
+  .list-row:active { background: var(--color-surface-sunken); transform: none; }
+}
+
+/* ------------------------------------------------------- sheets */
+/* A grab handle and a slide up from the bottom edge on a phone; global.js
+   lets the sheet be swiped down to close. */
+.sheet__grab { display: none; }
+@media (max-width: 640px) {
+  .sheet__grab {
+    display: block; width: 40px; height: 5px; border-radius: 999px;
+    background: var(--color-border); margin: calc(-1 * var(--space-2)) auto var(--space-3);
+  }
+  .sheet[open] .sheet__panel { animation: sheet-up .26s cubic-bezier(.2, .8, .2, 1); }
+  .sheet__panel.is-dragging { transition: none; }
+  .sheet__panel.is-settling { transition: transform .2s ease-out; }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+
+/* ------------------------------------------------ page transitions */
+/* Header and bars are their own layers, so a page change moves only the
+   page. Same-document changes (KEPT's screens) set html[data-nav] to say
+   which way: push slides in from the right, pop slides back, anything
+   else cross-fades. Page-to-page navigations cross-fade. */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: tn-header; }
+.tab-bar { view-transition-name: tn-tabbar; }
+main { view-transition-name: tn-main; }
+::view-transition-group(tn-main) { animation-duration: .2s; }
+::view-transition-old(tn-main), ::view-transition-new(tn-main) { animation-duration: .16s; }
+html[data-nav='push']::view-transition-group(tn-main),
+html[data-nav='pop']::view-transition-group(tn-main) { animation: none; }
+html[data-nav='push']::view-transition-new(tn-main) { animation: tn-in-right .3s cubic-bezier(.2, .8, .2, 1) both; }
+html[data-nav='push']::view-transition-old(tn-main) { animation: tn-out-left .3s cubic-bezier(.2, .8, .2, 1) both; }
+html[data-nav='pop']::view-transition-new(tn-main) { animation: tn-in-left .3s cubic-bezier(.2, .8, .2, 1) both; }
+html[data-nav='pop']::view-transition-old(tn-main) { animation: tn-out-right .3s cubic-bezier(.2, .8, .2, 1) both; z-index: 1; }
+@keyframes tn-in-right { from { transform: translateX(100%); } }
+@keyframes tn-out-left { to { transform: translateX(-25%); opacity: .4; } }
+@keyframes tn-in-left { from { transform: translateX(-25%); opacity: .4; } }
+@keyframes tn-out-right { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .sheet[open] .sheet__panel { animation: none; }
+}
+
+/* --------------------------------------------------------- account */
+/* The Account page head: the photo is the button that changes it. */
+.acct { padding-bottom: var(--space-6); }
+.acct-head { display: flex; align-items: center; gap: var(--space-3); padding-top: var(--space-5); }
+.acct-head__text { min-width: 0; }
+.acct-head h1 { font-size: 1.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acct-head p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acct-photo { position: relative; padding: 0; border: 0; background: transparent; border-radius: 50%; cursor: pointer; flex: none; }
+.acct-photo:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+.acct-photo__badge {
+  position: absolute; right: -2px; bottom: -2px; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--color-primary); color: #fff;
+  border: 2px solid var(--color-bg);
+}
+@media (max-width: 640px) { .acct-head { padding-top: var(--space-4); } }

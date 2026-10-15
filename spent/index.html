@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" data-app="spent">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <link rel="stylesheet" href="../kept/kept.css?v=3">
+  <link rel="stylesheet" href="../spent/spent.css?v=1">
+  <title>SPENT — RECKON</title>
+  <meta name="description" content="SPENT — how much of your time stays yours.">
+</head>
+<body class="has-app-bar">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <main id="main" class="wrap kp sp">
+    <nav class="app-bar kp-bar" aria-label="SPENT screens" id="sp-bar">
+      <button type="button" data-screen="today" aria-current="page"><span data-icon="sun"></span><span>Today</span></button>
+      <button type="button" data-screen="week"><span data-icon="calendar"></span><span>Week</span></button>
+      <button type="button" data-screen="insights"><span data-icon="sparkles"></span><span>Insights</span></button>
+      <button type="button" data-screen="settings"><span data-icon="sliders"></span><span>Usual day</span></button>
+    </nav>
+
+    <div class="kp-head">
+      <div>
+        <p class="eyebrow">SPENT</p>
+        <h1 id="sp-title">Today</h1>
+        <p class="muted" id="sp-sub">How much of your time stays yours.</p>
+      </div>
+      <div class="kp-head__rate" id="sp-rate" aria-live="polite"></div>
+    </div>
+
+    <div id="sp-loading" class="stack" aria-busy="true" aria-label="Loading your record">
+      <div class="skeleton skeleton--card" style="height:160px"></div>
+      <div class="skeleton skeleton--card" style="height:300px"></div>
+    </div>
+
+    <!-- ============================== Today -->
+    <section class="kp-screen" data-screen="today" hidden>
+      <div class="sp-daynav">
+        <button type="button" class="btn btn--quiet btn--sm" id="day-prev" aria-label="Previous day"><span data-icon="chevron-left"></span></button>
+        <button type="button" class="sp-daynav__date" id="day-pick" aria-label="Pick a day"><b id="day-label">Today</b><span id="day-sub"></span></button>
+        <button type="button" class="btn btn--quiet btn--sm" id="day-next" aria-label="Next day"><span data-icon="chevron-right"></span></button>
+        <input type="date" id="day-input" class="sr-only" aria-hidden="true" tabindex="-1">
+      </div>
+      <div id="today-hero"></div>
+      <div class="panel">
+        <div class="sp-bar" id="day-bar" aria-label="The day as a bar" role="img"></div>
+        <div class="sp-legend" id="day-legend"></div>
+        <div class="sp-unalloc" id="day-unalloc"></div>
+      </div>
+      <div class="panel">
+        <div class="panel__head"><h2>Where the hours went</h2>
+          <div class="sp-headbtns">
+            <button type="button" class="btn btn--ghost btn--sm" id="day-usual" title="Fill from your usual day">Fill usual</button>
+            <button type="button" class="btn btn--quiet btn--sm" id="day-clear" title="Clear this day">Clear</button>
+          </div></div>
+        <div id="day-rows" class="sp-rows"></div>
+        <div class="field" style="margin-top:var(--space-3)"><label for="day-note">A line about the day <span class="muted">(optional)</span></label>
+          <input id="day-note" type="text" maxlength="500" placeholder="What made it good, or not."></div>
+        <p class="kp-muted-sm" id="day-saved" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- ============================== Week -->
+    <section class="kp-screen" data-screen="week" hidden>
+      <div id="week-wrap" class="stack"></div>
+    </section>
+
+    <!-- ============================== Insights -->
+    <section class="kp-screen" data-screen="insights" hidden>
+      <div id="ins-wrap" class="stack"></div>
+    </section>
+
+    <!-- ============================== Usual day (settings) -->
+    <section class="kp-screen" data-screen="settings" hidden>
+      <div class="panel">
+        <div class="panel__head"><div><h2>Your usual day</h2><p class="muted">What a normal weekday and weekend look like before you choose anything. "Fill usual" on Today starts from this; the committed hours come from it too.</p></div></div>
+        <div class="segmented" id="rule-seg" role="group" aria-label="Day type">
+          <button type="button" data-rule="weekday" aria-pressed="true">Weekday</button>
+          <button type="button" data-rule="weekend" aria-pressed="false">Weekend</button>
+        </div>
+        <div id="rule-rows" class="sp-rows"></div>
+        <p class="kp-muted-sm" id="rule-total"></p>
+      </div>
+      <div class="panel">
+        <div class="panel__head"><div><h2>Your target</h2><p class="muted">The share of waking hours that should be yours by choice — family, learning, exercise, friends, making.</p></div></div>
+        <div class="sp-target"><input type="range" id="target-range" min="5" max="60" step="5"><b id="target-label"></b></div>
+        <p class="kp-muted-sm">20% of a 17-hour waking day is 3h 24m. Most people who measure it find they are at 8–12%.</p>
+      </div>
+      <div class="panel">
+        <div class="panel__head"><div><h2>Weekend days</h2><p class="muted">Which days use the weekend pattern.</p></div></div>
+        <div class="sp-dow" id="dow-pick"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Minutes editor sheet: tap a row to type an exact number. -->
+  <dialog class="sheet" id="min-sheet" aria-labelledby="ms-title">
+    <form class="sheet__panel" id="min-form" method="dialog" novalidate>
+      <div class="sheet__head"><h2 id="ms-title">Minutes</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="field-row">
+        <div class="field"><label for="ms-h">Hours</label><input id="ms-h" type="number" inputmode="numeric" min="0" max="24" step="1"></div>
+        <div class="field"><label for="ms-m">Minutes</label><input id="ms-m" type="number" inputmode="numeric" min="0" max="59" step="5"></div>
+      </div>
+      <div class="sp-quick" id="ms-quick"></div>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn--primary" value="save">Set</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer data-site-footer></footer>
+  <div id="toast-region" aria-live="polite"></div>
+
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <!-- KEPT's data layer too: when there is a salary on record, the
+       Insights screen prices the hours with it. -->
+  <script src="../kept/kept-core.js?v=1" defer></script>
+  <script src="../kept/kept-data.js?v=1" defer></script>
+  <script src="../spent/spent-engine.js?v=1" defer></script>
+  <script src="../spent/spent-data.js?v=1" defer></script>
+  <script src="../spent/spent.js?v=1" defer></script>
+</body>
+</html>

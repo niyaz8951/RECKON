@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <title>Admin — RECKON</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <!-- One admin, three jobs: approve accounts, flip switches, check the
+       deployment. Each is a panel; nothing here edits app data. -->
+  <main id="main" class="wrap">
+    <div class="page-head">
+      <p class="eyebrow">Admin</p>
+      <h1>Site admin</h1>
+      <p>Accounts, switches and the health of the deployment. App data is managed inside each app.</p>
+    </div>
+
+    <nav class="app-bar" aria-label="Admin sections" id="tabs">
+      <button type="button" data-tab="users" aria-current="page">Accounts</button>
+      <button type="button" data-tab="settings">Settings</button>
+      <button type="button" data-tab="health">Health</button>
+      <button type="button" data-tab="audit">Audit</button>
+    </nav>
+
+    <section id="tab-users" class="panel" style="margin-top:var(--space-4)">
+      <div class="panel__head"><h2>Accounts</h2><button class="btn btn--ghost btn--sm" id="reload-users">Refresh</button></div>
+      <div id="users-out" aria-live="polite"></div>
+    </section>
+
+    <section id="tab-settings" class="panel" style="margin-top:var(--space-4)" hidden>
+      <div class="panel__head"><h2>Settings</h2></div>
+      <form id="settings-form" class="stack">
+        <div class="field"><label for="s-signup">New accounts</label>
+          <select id="s-signup" name="signup_mode">
+            <option value="approval">Wait for my approval</option>
+            <option value="open">Open immediately</option>
+            <option value="closed">Closed — no new accounts</option>
+          </select></div>
+        <div class="field"><label for="s-maint">Maintenance mode</label>
+          <select id="s-maint" name="maintenance">
+            <option value="off">Off</option>
+            <option value="on">On — only admins can use the APIs</option>
+          </select></div>
+        <div class="field"><label for="s-ann">Announcement (shown on every page; blank for none)</label>
+          <input id="s-ann" name="announcement" type="text" maxlength="300"></div>
+        <div><button class="btn btn--primary" type="submit">Save settings</button></div>
+      </form>
+    </section>
+
+    <section id="tab-health" class="panel" style="margin-top:var(--space-4)" hidden>
+      <div class="panel__head"><h2>Health</h2><button class="btn btn--ghost btn--sm" id="reload-health">Check again</button></div>
+      <div id="health-out" aria-live="polite"></div>
+    </section>
+
+    <section id="tab-audit" class="panel" style="margin-top:var(--space-4)" hidden>
+      <div class="panel__head"><h2>Audit log</h2></div>
+      <div id="audit-out"></div>
+    </section>
+  </main>
+
+  <footer data-site-footer></footer>
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <script>
+  (function () {
+    'use strict';
+    var esc = TN.esc, el = TN.el, api = TN.api, icon = TN.icon;
+
+    TN.ready(async function () {
+      await TN.guard('admin');
+      loadUsers(); loadSettings();
+    });
+
+    // ---- tabs
+    el('#tabs').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-tab]');
+      if (!b) return;
+      TN.els('#tabs button').forEach(function (x) { x.removeAttribute('aria-current'); });
+      b.setAttribute('aria-current', 'page');
+      ['users', 'settings', 'health', 'audit'].forEach(function (t) { el('#tab-' + t).hidden = t !== b.dataset.tab; });
+      if (b.dataset.tab === 'health') loadHealth();
+      if (b.dataset.tab === 'audit') loadAudit();
+    });
+
+    // ---- accounts
+    async function loadUsers() {
+      var out = el('#users-out');
+      out.innerHTML = '<p class="muted">Loading…</p>';
+      try {
+        var r = await api('/api/admin/users');
+        if (!r.users.length) { out.innerHTML = '<div class="empty">No accounts yet.</div>'; return; }
+        out.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr>' +
+          '<th>Account</th><th>Status</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody>' +
+          r.users.map(function (u) {
+            return '<tr data-id="' + esc(u.id) + '">' +
+              '<td><strong>' + esc(u.name || '—') + '</strong><br><span class="muted">' + esc(u.email) + '</span></td>' +
+              '<td><span class="chip' + (u.status === 'active' ? ' chip--free' : u.status === 'pending' ? ' chip--auth' : ' chip--danger') + '">' + esc(u.status) + '</span>' +
+              '</td>' +
+              '<td>' + esc(u.role) + '</td>' +
+              '<td class="muted">' + esc(u.last_login_at ? u.last_login_at.slice(0, 10) : 'never') + '</td>' +
+              '<td class="row-actions">' +
+              (u.status !== 'active' ? '<button class="btn btn--primary btn--sm" data-act="active">Approve</button>' : '') +
+              (u.status === 'active' ? '<button class="btn btn--ghost btn--sm" data-act="suspended">Suspend</button>' : '') +
+              (u.role !== 'admin' ? '<button class="btn btn--ghost btn--sm" data-role="admin">Make admin</button>' : '<button class="btn btn--ghost btn--sm" data-role="user">Make user</button>') +
+              '<button class="btn btn--quiet btn--sm" data-del aria-label="Delete account">' + icon('trash', 16) + '</button>' +
+              '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      } catch (err) { out.innerHTML = '<div class="notice notice--danger"><div>' + esc(err.message) + '</div></div>'; }
+    }
+    el('#reload-users').addEventListener('click', loadUsers);
+    el('#users-out').addEventListener('click', async function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var id = b.closest('tr').dataset.id;
+      try {
+        if (b.dataset.act) await api('/api/admin/users/' + id, { method: 'PATCH', body: { status: b.dataset.act } });
+        else if (b.dataset.role) await api('/api/admin/users/' + id, { method: 'PATCH', body: { role: b.dataset.role } });
+        else if (b.hasAttribute('data-del')) {
+          if (!confirm('Delete this account and everything it stored in every app? This cannot be undone.')) return;
+          await api('/api/admin/users/' + id, { method: 'DELETE' });
+        }
+        TN.toast('Saved', 'success'); loadUsers();
+      } catch (err) { TN.toast(err.message, 'error'); }
+    });
+
+    // ---- settings
+    async function loadSettings() {
+      try {
+        var r = await api('/api/admin/settings');
+        el('#s-signup').value = r.settings.signup_mode || 'approval';
+        el('#s-maint').value = r.settings.maintenance || 'off';
+        el('#s-ann').value = r.settings.announcement || '';
+      } catch (err) { TN.toast(err.message, 'error'); }
+    }
+    el('#settings-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      try {
+        await api('/api/admin/settings', { method: 'PATCH', body: {
+          signup_mode: el('#s-signup').value, maintenance: el('#s-maint').value, announcement: el('#s-ann').value } });
+        TN.toast('Settings saved', 'success');
+      } catch (err) { TN.toast(err.message, 'error'); }
+    });
+
+    // ---- health
+    async function loadHealth() {
+      var out = el('#health-out');
+      out.innerHTML = '<p class="muted">Checking…</p>';
+      try {
+        var h = await api('/api/admin/health');
+        var head = h.ok
+          ? '<div class="notice notice--success">' + icon('check', 18) + '<div>Everything is assembled: Supabase connected, tables present, schema applied, books bucket ready.</div></div>'
+          : '<div class="notice notice--danger">' + icon('alert-triangle', 18) + '<div><strong>' + h.problems.length + ' problem(s)</strong><ul>' +
+            h.problems.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul></div></div>';
+        var counts = Object.keys(h.counts).map(function (k) {
+          return '<div class="stat"><div class="stat__value num">' + esc(h.counts[k] == null ? '?' : h.counts[k]) + '</div><div class="stat__label">' + esc(k) + '</div></div>';
+        }).join('');
+        out.innerHTML = head +
+          '<p class="muted" style="margin-top:var(--space-3)">Supabase database ' + mark(h.bindings.DB) + '</p>' +
+          (h.note ? '<p class="muted">' + esc(h.note) + '</p>' : '') +
+          '<div class="stat-grid" style="margin-top:var(--space-3)">' + counts + '</div>' +
+          '<p class="muted" style="margin-top:var(--space-3)">Migrations applied: ' + (h.migrations.map(function (m) { return esc(m.name); }).join(', ') || 'none') + '</p>';
+      } catch (err) { out.innerHTML = '<div class="notice notice--danger"><div>' + esc(err.message) + '</div></div>'; }
+    }
+    function mark(ok) { return ok ? '✓' : '✗'; }
+    el('#reload-health').addEventListener('click', loadHealth);
+
+    // ---- audit
+    async function loadAudit() {
+      var out = el('#audit-out');
+      try {
+        var r = await api('/api/admin/audit');
+        if (!r.rows.length) { out.innerHTML = '<div class="empty">Nothing logged yet.</div>'; return; }
+        out.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Target</th></tr></thead><tbody>' +
+          r.rows.map(function (a) {
+            return '<tr><td class="muted">' + esc(a.created_at.replace('T', ' ').slice(0, 16)) + '</td><td>' + esc(a.actor_email || '—') + '</td>' +
+              '<td>' + esc(a.action) + '</td><td class="muted">' + esc(a.target || '') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      } catch (err) { out.innerHTML = '<div class="notice notice--danger"><div>' + esc(err.message) + '</div></div>'; }
+    }
+  })();
+  </script>
+</body>
+</html>

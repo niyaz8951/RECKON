@@ -1,0 +1,62 @@
+/* DECIDED — what kept.css does not already give it. */
+.dc-list { display: grid; gap: var(--space-3); }
+.dc-card { background: var(--color-surface); border: 1px solid var(--color-border); border-left-width: 4px; border-radius: var(--radius-md); padding: var(--space-3); }
+.dc-card--low { border-left-color: var(--color-border); }
+.dc-card--medium { border-left-color: var(--color-primary); }
+.dc-card--high { border-left-color: var(--color-danger); }
+.dc-card.is-due { background: var(--color-primary-tint); }
+.dc-card__top { display: flex; align-items: flex-start; gap: var(--space-2); }
+.dc-card__dom { flex: none; width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--color-surface-sunken); color: var(--color-primary); }
+.dc-card__dom svg { width: 18px; height: 18px; }
+.dc-card__t { flex: 1 1 auto; min-width: 0; }
+.dc-card h3 { margin: 0; font-size: 1.0625rem; line-height: 1.3; }
+.dc-card__meta { margin: 2px 0 0; font-size: 0.75rem; color: var(--color-text-muted); }
+.dc-conf-pill { flex: none; font-family: var(--font-mono); font-size: 0.8125rem; padding: 2px 8px; border-radius: 999px; background: var(--color-surface-sunken); color: var(--color-text); }
+.dc-card__line { margin: var(--space-2) 0 0; font-size: 0.9375rem; }
+.dc-card__line b { font-weight: 600; color: var(--color-text-muted); }
+.dc-card__outcome { padding-top: var(--space-2); border-top: 1px dashed var(--color-border); }
+.dc-card__verdict { margin: var(--space-2) 0 0; display: flex; gap: var(--space-1); flex-wrap: wrap; }
+.dc-card__lesson { margin: var(--space-2) 0 0; font-style: italic; color: var(--color-text); }
+.dc-card__acts { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+.dc-card__when { flex: 1 1 auto; font-size: 0.8125rem; color: var(--color-text-muted); }
+.dc-card__when.is-due { color: var(--color-primary); font-weight: 600; }
+.dc-how { margin: var(--space-3) 0; padding-left: 1.25rem; display: grid; gap: var(--space-2); }
+.dc-how li { line-height: 1.5; }
+
+.dc-conf { display: flex; align-items: center; gap: var(--space-3); }
+.dc-conf input[type=range] { flex: 1 1 auto; accent-color: var(--color-primary); }
+.dc-conf b { font-family: var(--font-mono); font-size: 1.125rem; min-width: 3.2em; text-align: right; }
+.dc-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.dc-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 var(--space-3); border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 0.875rem; cursor: pointer; }
+.dc-chip svg { width: 16px; height: 16px; }
+.dc-chip[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary-tint); color: var(--color-primary); font-weight: 500; }
+.dc-date { margin-top: var(--space-2); }
+.dc-date[hidden] { display: none; }
+.dc-more { margin-top: var(--space-3); }
+.dc-more summary { cursor: pointer; color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: var(--space-2); }
+.dc-recall { padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface-sunken); margin-bottom: var(--space-3); }
+.dc-recall h3 { margin: 4px 0; }
+.dc-recall p { margin: var(--space-1) 0 0; font-size: 0.9375rem; }
+.dc-recall details { margin-top: var(--space-2); font-size: 0.875rem; }
+.dc-score { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.dc-score__b { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 56px; padding: 6px 2px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font: inherit; cursor: pointer; }
+.dc-score__b b { font-family: var(--font-mono); }
+.dc-score__b span { font-size: 0.625rem; color: var(--color-text-muted); text-align: center; line-height: 1.1; }
+.dc-score__b[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary-tint); color: var(--color-primary); }
+
+.dc-cal { display: grid; gap: var(--space-2); }
+.dc-cal__row { display: grid; grid-template-columns: 56px 1fr 76px; align-items: center; gap: var(--space-2); font-size: 0.8125rem; }
+.dc-cal__b { font-family: var(--font-mono); color: var(--color-text-muted); }
+.dc-cal__bar { position: relative; height: 14px; border-radius: 7px; background: var(--color-surface-sunken); overflow: hidden; }
+.dc-cal__bar i { position: absolute; left: 0; top: 0; height: 100%; border-radius: 7px; }
+.dc-cal__said { background: var(--color-border); }
+.dc-cal__hit { background: var(--color-primary); height: 60% !important; top: 20% !important; }
+.dc-cal__v { font-family: var(--font-mono); text-align: right; }
+.dc-cal__v small { color: var(--color-text-muted); font-family: var(--font-body); }
+.dc-key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: middle; }
+.dc-key--said { background: var(--color-border); } .dc-key--hit { background: var(--color-primary); }
+.dc-lessons { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.dc-lessons li { font-style: italic; line-height: 1.4; }
+.dc-lessons li span { display: block; font-style: normal; font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+.kp-hero__big small { font-size: 0.6em; color: var(--color-text-muted); }
+.dc .panel__head { flex-wrap: wrap; gap: var(--space-2); }

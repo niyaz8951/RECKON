@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-app="kept">
+<head>
+  <meta charset="utf-8">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Theme before first paint (same rule as applyTheme in global.js): the
+       saved choice, else the phone's own setting. -->
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../../assets/css/global.css?v=34">
+  <link rel="stylesheet" href="../../kept/kept.css?v=3">
+  <title>KEPT settings — RECKON</title>
+</head>
+<body class="is-pushed" data-title="KEPT settings">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+  <!-- KEPT's settings, reached from Account → App settings. They live in the
+       KEPT folder because they are KEPT's: the page reads and writes only
+       /api/kept/*. -->
+  <main id="main" class="wrap acct kp-settings">
+    <div class="nav-bar">
+      <a class="nav-bar__back" href="../../account/" data-back><span data-icon="chevron-left" data-icon-size="24"></span><span>Account</span></a>
+      <h1 class="nav-bar__title">KEPT settings</h1>
+      <span class="nav-bar__end"></span>
+    </div>
+
+    <div id="ks-loading" class="stack" aria-busy="true"><div class="skeleton skeleton--card"></div><div class="skeleton skeleton--card"></div></div>
+
+    <div id="ks-body" hidden>
+      <div class="list-group">
+        <p class="list-group__title">Money</p>
+        <div class="list-group__card">
+          <label class="list-row list-row--static" for="set-cur"><span class="list-row__icon" data-icon="coins"></span><span class="list-row__label">Currency<small>Every amount is in this currency</small></span>
+            <select id="set-cur" class="kp-inline-in"><option>AED</option><option>SAR</option><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>QAR</option><option>KWD</option><option>OMR</option><option>BHD</option></select></label>
+          <label class="list-row list-row--static" for="set-target"><span class="list-row__icon" data-icon="trending-up"></span><span class="list-row__label">Target keep-rate<small>Share of income you mean to keep, %</small></span>
+            <input id="set-target" class="kp-inline-in" type="number" inputmode="numeric" min="1" max="80" step="1"></label>
+          <label class="list-row list-row--static" for="set-ramp"><span class="list-row__icon" data-icon="calendar"></span><span class="list-row__label">Ramp to target<small>Months to climb from where you are</small></span>
+            <input id="set-ramp" class="kp-inline-in" type="number" inputmode="numeric" min="1" max="36" step="1"></label>
+        </div>
+        <p class="list-group__note">Changes save as you make them. The path check on Home scores every month against the ramp.</p>
+      </div>
+
+      <div class="list-group">
+        <p class="list-group__title">Your data</p>
+        <div class="list-group__card">
+          <div class="list-row list-row--static"><span class="list-row__icon" data-icon="database"></span><span class="list-row__label" id="data-info">…</span></div>
+          <label class="list-row" for="data-file"><span class="list-row__icon" data-icon="upload"></span><span class="list-row__label">Upload Excel or CSV<small>Replaces the record, after you confirm</small></span><span class="list-row__chev" data-icon="chevron-right"></span>
+            <input id="data-file" type="file" accept=".xlsx,.xls,.csv" class="sr-only"></label>
+          <button type="button" class="list-row" id="data-export"><span class="list-row__icon" data-icon="download"></span><span class="list-row__label">Export everything<small>In the upload layout — your backup</small></span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+          <button type="button" class="list-row" id="data-sample"><span class="list-row__icon" data-icon="file-text"></span><span class="list-row__label">Download the sample file</span><span class="list-row__chev" data-icon="chevron-right"></span></button>
+        </div>
+        <p class="list-group__note">Columns are matched automatically: Date, Description, Amount (or Debit/Credit), Category, Remarks.</p>
+      </div>
+
+      <div class="list-group">
+        <p class="list-group__title">Where it is kept</p>
+        <div class="list-group__card">
+          <div class="list-row list-row--static"><span class="list-row__icon" data-icon="shield"></span><span class="list-row__label">In your Supabase database<small>Only your account can read these rows. Export regularly — it is your backup.</small></span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Import confirmation -->
+  <dialog class="sheet" id="imp-sheet" aria-labelledby="imp-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="imp-title">Replace the record with this file?</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div id="imp-body" class="stack"></div>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--ghost" data-close>Keep my record</button>
+        <button type="button" class="btn btn--danger" id="imp-go">Replace everything</button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer data-site-footer></footer>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/vendor/supabase.js?v=1"></script>
+  <script src="../../assets/js/db.js?v=2"></script>
+  <script src="../../assets/js/routes-core.js?v=1"></script>
+  <script src="../../assets/js/global.js?v=37"></script>
+  <script src="../../assets/js/pwa.js?v=5"></script>
+  <script src="../../kept/kept-core.js?v=1" defer></script>
+  <script src="../../kept/kept-data.js?v=1" defer></script>
+  <script src="../../kept/kept-store.js?v=1" defer></script>
+  <script src="../../kept/kept-import.js?v=2" defer></script>
+  <script src="../../kept/kept-settings.js?v=3" defer></script>
+</body>
+</html>

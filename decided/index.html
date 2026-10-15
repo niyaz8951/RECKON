@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-app="decided">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=34">
+  <link rel="stylesheet" href="../kept/kept.css?v=3">
+  <link rel="stylesheet" href="../decided/decided.css?v=1">
+  <title>DECIDED — RECKON</title>
+  <meta name="description" content="DECIDED — decide, predict, look back, get better at it.">
+</head>
+<body class="has-app-bar">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <main id="main" class="wrap kp dc">
+    <nav class="app-bar kp-bar" aria-label="DECIDED screens" id="dc-bar">
+      <button type="button" data-screen="open" aria-current="page"><span data-icon="compass"></span><span>Open</span></button>
+      <button type="button" data-screen="journal"><span data-icon="file-text"></span><span>Journal</span></button>
+      <button type="button" class="app-bar__fab" id="dc-fab" aria-label="Log a decision"><span data-icon="plus"></span><span class="kp-bar__fablabel">Decide</span></button>
+      <button type="button" data-screen="insights"><span data-icon="sparkles"></span><span>Insights</span></button>
+      <button type="button" data-screen="how"><span data-icon="help-circle"></span><span>How</span></button>
+    </nav>
+
+    <div class="kp-head">
+      <div>
+        <p class="eyebrow">DECIDED</p>
+        <h1 id="dc-title">Open</h1>
+        <p class="muted" id="dc-sub">Decide, predict, look back, get better at it.</p>
+      </div>
+      <div class="kp-head__rate" id="dc-rate" aria-live="polite"></div>
+    </div>
+
+    <div id="dc-loading" class="stack" aria-busy="true" aria-label="Loading your decisions">
+      <div class="skeleton skeleton--card" style="height:120px"></div>
+      <div class="skeleton skeleton--card" style="height:220px"></div>
+    </div>
+
+    <section class="kp-screen" data-screen="open" hidden><div id="open-wrap" class="stack"></div></section>
+    <section class="kp-screen" data-screen="journal" hidden><div id="journal-wrap" class="stack"></div></section>
+    <section class="kp-screen" data-screen="insights" hidden><div id="ins-wrap" class="stack"></div></section>
+    <section class="kp-screen" data-screen="how" hidden>
+      <div class="panel">
+        <h2>How this works</h2>
+        <ol class="dc-how">
+          <li><b>Log the decision before you know how it goes.</b> What you chose, what you expect, and how sure you are. Twenty seconds.</li>
+          <li><b>Pick a review date.</b> A week for small things, months for the big ones. The decision waits quietly until then.</li>
+          <li><b>On the day, write what happened.</b> Did it go as expected? Better or worse? What would you tell yourself?</li>
+          <li><b>Insights keeps score.</b> After a handful of reviews you learn the thing experience never tells you on its own: whether “80% sure” means 80% for you — or 55%.</li>
+        </ol>
+        <p class="muted">Nothing here is advice. It is a mirror, held up on a schedule.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Log / edit a decision -->
+  <dialog class="sheet" id="dec-sheet" aria-labelledby="ds-title">
+    <form class="sheet__panel" id="dec-form" novalidate>
+      <div class="sheet__head"><h2 id="ds-title">Log a decision</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="field"><label for="ds-name">What are you deciding?</label><input id="ds-name" type="text" maxlength="140" placeholder="Take the Riyadh role · Buy the car now · Start the morning run" autocomplete="off"></div>
+      <div class="field"><label for="ds-choice">What did you choose? <span class="muted">(optional)</span></label><input id="ds-choice" type="text" maxlength="200" placeholder="Yes, from January"></div>
+      <div class="field"><label for="ds-expected">What do you expect to happen?</label><textarea id="ds-expected" rows="2" maxlength="1000" placeholder="Harder first six months, better money, home every other weekend."></textarea></div>
+      <div class="field"><span class="label">How sure are you that it goes that way?</span>
+        <div class="dc-conf"><input type="range" id="ds-conf" min="50" max="99" step="1" value="75"><b id="ds-conf-label">75%</b></div>
+        <p class="hint" id="ds-conf-hint"></p></div>
+      <div class="field"><span class="label">Area</span><div class="dc-chips" id="ds-domain" role="group" aria-label="Area"></div></div>
+      <div class="field-row">
+        <div class="field"><span class="label">Stakes</span><div class="segmented" id="ds-stakes" role="group" aria-label="Stakes">
+          <button type="button" data-v="low" aria-pressed="false">Low</button><button type="button" data-v="medium" aria-pressed="true">Medium</button><button type="button" data-v="high" aria-pressed="false">High</button></div></div>
+        <div class="field"><span class="label">Can it be undone?</span><div class="segmented" id="ds-rev" role="group" aria-label="Reversible">
+          <button type="button" data-v="1" aria-pressed="true">Yes</button><button type="button" data-v="0" aria-pressed="false">Not really</button></div></div>
+      </div>
+      <div class="field"><span class="label">Look back</span>
+        <div class="dc-chips" id="ds-review" role="group" aria-label="Review date"></div>
+        <input type="date" id="ds-review-date" class="dc-date"></div>
+      <details class="dc-more"><summary>Context, alternatives, the pre-mortem</summary>
+        <div class="field"><label for="ds-context">Why this, and why now?</label><textarea id="ds-context" rows="3" maxlength="2000" placeholder="What you know, what you are assuming, what would make you wrong."></textarea></div>
+        <div class="field"><label for="ds-options">What else was on the table? <span class="muted">(one per line)</span></label><textarea id="ds-options" rows="2" maxlength="600"></textarea></div>
+      </details>
+      <p class="notice notice--danger" id="ds-msg" hidden></p>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--danger" id="ds-del" hidden><span data-icon="trash"></span> Delete</button>
+        <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn--primary" id="ds-save">Log it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Review -->
+  <dialog class="sheet" id="rev-sheet" aria-labelledby="rv-title">
+    <form class="sheet__panel" id="rev-form" novalidate>
+      <div class="sheet__head"><h2 id="rv-title">Looking back</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="dc-recall" id="rv-recall"></div>
+      <div class="field"><label for="rv-outcome">What actually happened?</label><textarea id="rv-outcome" rows="3" maxlength="2000"></textarea></div>
+      <div class="field"><span class="label">Did it go as you expected?</span><div class="segmented" id="rv-asexp" role="group">
+        <button type="button" data-v="1" aria-pressed="false">Yes, broadly</button><button type="button" data-v="0" aria-pressed="false">No</button></div></div>
+      <div class="field"><span class="label">Compared with what you expected, it turned out…</span><div class="dc-score" id="rv-score" role="group"></div></div>
+      <div class="field"><label for="rv-lesson">What would you tell yourself, back then? <span class="muted">(optional)</span></label><input id="rv-lesson" type="text" maxlength="1000" placeholder="One line. This is the part that compounds."></div>
+      <p class="notice notice--danger" id="rv-msg" hidden></p>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--ghost" data-close>Not yet</button>
+        <button type="submit" class="btn btn--primary">Save the review</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer data-site-footer></footer>
+  <div id="toast-region" aria-live="polite"></div>
+
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=2"></script>
+  <script src="../assets/js/routes-core.js?v=1"></script>
+  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <script src="../decided/decided-engine.js?v=1" defer></script>
+  <script src="../decided/decided-data.js?v=1" defer></script>
+  <script src="../decided/decided.js?v=1" defer></script>
+</body>
+</html>
