@@ -1,0 +1,29 @@
+# Runs the test suite on every push and pull request. A red cross on a commit
+# in GitHub means something broke; nothing is deployed from here.
+#
+# Publishing is GitHub Pages' own "Deploy from a branch" (Settings → Pages →
+# Source: Deploy from a branch → main, / (root)), so this file is optional:
+# the site goes live whether or not it exists.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Test-only tools, never site dependencies: jsdom for the page suites,
+      # PGlite (Postgres in WebAssembly) to run supabase/schema.sql and the
+      # data layer for real. --no-save keeps package.json honest about that.
+      - run: npm install --no-save jsdom @electric-sql/pglite
+      - run: npm test

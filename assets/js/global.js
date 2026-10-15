@@ -64,6 +64,8 @@
     minimize: '<path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>',
     'pen-line': '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    // The RECKON mark: a tally of five — four strokes and the one that counts them.
+    tally: '<path d="M5 5v14M9.5 5v14M14.5 5v14M19 5v14"/><path d="M2.5 17.5l19-9" opacity=".75"/>',
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>',
     briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
     'chevron-up': '<path d="M18 15l-6-6-6 6"/>',
@@ -348,7 +350,7 @@
       // the page load and this render (the api() 401 handler is navigating).
       : (isAuthPage() ? '' : '<a class="btn btn--primary btn--sm" href="' + url('login/') + '">Sign in</a>');
     return '<div class="site-header__inner">' +
-      '<a class="brand" href="' + BASE + '" aria-label="RECKON — all apps"><span class="brand__mark">' + icon('layers', 16) + '</span><span class="brand__name">RECKON</span></a>' +
+      '<a class="brand" href="' + BASE + '" aria-label="RECKON — all apps"><span class="brand__mark">' + icon('tally', 16) + '</span><span class="brand__name">RECKON</span></a>' +
       '<span class="site-header__title">' + esc(pageTitle()) + '</span>' +
       '<nav class="site-nav" aria-label="Apps">' + links + '</nav>' +
       '<div class="header-actions">' +
