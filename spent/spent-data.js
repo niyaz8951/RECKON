@@ -4,14 +4,17 @@
    against Supabase through TNData.db. Row-level security keeps each
    person to their own rows.
 
-     GET /api/spent/bootstrap            { profile, days: [{d, blocks, note}], today }
+     GET /api/spent/bootstrap            { profile, days: [{d, blocks, src, note, confirmed_at}], today }
      GET /api/spent/days?from=&to=       { days }
-     PUT /api/spent/day                  { d, blocks:{cat: minutes}, note? } -> { day }
+     PUT /api/spent/day                  { d, blocks:{cat: minutes}, src?:{cat: source}, confirmed?, note? } -> { day }
      PUT /api/spent/profile              { cats?, rules?, target_bp?, weekend? } -> { profile }
 
    A day is one row per date (unique user_id + d); minutes per category in
-   blocks_json. Profile (categories, usual-day rules, target) is one JSON
-   row per person. */
+   blocks_json, with "_src" beside them saying where each came from
+   (assumed | confirmed | focus | ai). `confirmed: true` is a check-in: it
+   stamps confirmed_at. A row written before v2 has no "_src" and comes back
+   with src: null, which the engine reads as confirmed. Profile (categories,
+   usual-day rules, target) is one JSON row per person. */
 (function (root) {
   'use strict';
   var D = root.TNData, db = D.db, route = D.route, fail = D.fail, E = root.SpentEngine;
@@ -28,7 +31,21 @@
     }
     return E.profileOf(parseJson(row.profile_json, {}));
   }
-  function shapeDay(row) { return { d: row.d, blocks: parseJson(row.blocks_json, {}), note: row.note || '', updated_at: row.updated_at }; }
+  function shapeDay(row) {
+    var raw = parseJson(row.blocks_json, {}), src = null, blocks = {};
+    Object.keys(raw).forEach(function (k) { if (k === '_src') { if (raw._src && typeof raw._src === 'object') src = raw._src; } else blocks[k] = raw[k]; });
+    return { d: row.d, blocks: blocks, src: src, note: row.note || '', confirmed_at: row.confirmed_at || null, updated_at: row.updated_at };
+  }
+  function cleanSrc(src, prof) {
+    var out = {}, cm = E.catMap(prof);
+    Object.keys(src || {}).forEach(function (k) { if (cm[k] && E.SRC.indexOf(src[k]) !== -1) out[k] = src[k]; });
+    return out;
+  }
+  /* The one write that a not-yet-migrated project refuses: say what to do. */
+  function schemaHint(e) {
+    if (/confirmed_at/.test(String((e && (e.pg || e.message)) || ''))) return fail('RECKON has been updated: run supabase/schema.sql once in Supabase (SQL editor) to add the check-in column.', 503);
+    return e;
+  }
   async function days(u, from, to) {
     var where = { user_id: u.id };
     if (from) where.d = { gte: from };
@@ -62,16 +79,25 @@
     var note = b.note == null ? null : String(b.note).slice(0, 500);
     var ts = now();
     var existing = await db.first('spent_days', { where: { user_id: u.id, d: d } });
+    // Sources: what the page says, else what the row already said. An old
+    // page sends none and writes a pre-v2 shaped row, which reads as confirmed.
+    var stored = b.src && typeof b.src === 'object' ? Object.assign({}, blocks, { _src: cleanSrc(b.src, prof) })
+      : existing && parseJson(existing.blocks_json, {})._src ? Object.assign({}, blocks, { _src: cleanSrc(parseJson(existing.blocks_json, {})._src, prof) })
+      : blocks;
+    var patch = { blocks_json: JSON.stringify(stored), note: note, updated_at: ts };
+    if (b.confirmed === true) patch.confirmed_at = ts;
     var row;
-    if (existing) row = (await db.update('spent_days', { blocks_json: JSON.stringify(blocks), note: note, updated_at: ts }, { id: existing.id, user_id: u.id }))[0];
-    else {
-      try { row = (await db.insert('spent_days', { id: newId('sday'), user_id: u.id, d: d, blocks_json: JSON.stringify(blocks), note: note, created_at: ts, updated_at: ts }))[0]; }
-      catch (e) {
-        var again = await db.first('spent_days', { where: { user_id: u.id, d: d } });
-        if (!again) throw e;
-        row = (await db.update('spent_days', { blocks_json: JSON.stringify(blocks), note: note, updated_at: ts }, { id: again.id, user_id: u.id }))[0];
+    try {
+      if (existing) row = (await db.update('spent_days', patch, { id: existing.id, user_id: u.id }))[0];
+      else {
+        try { row = (await db.insert('spent_days', Object.assign({ id: newId('sday'), user_id: u.id, d: d, created_at: ts }, patch)))[0]; }
+        catch (e) {
+          var again = await db.first('spent_days', { where: { user_id: u.id, d: d } });
+          if (!again) throw e;
+          row = (await db.update('spent_days', patch, { id: again.id, user_id: u.id }))[0];
+        }
       }
-    }
+    } catch (e) { throw schemaHint(e); }
     return { ok: true, day: shapeDay(row) };
   });
 

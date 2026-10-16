@@ -20,7 +20,7 @@
 .sp-headbtns { display: flex; gap: var(--space-1); }
 
 .sp-group + .sp-group { margin-top: var(--space-3); }
-.sp-group__label { margin: 0 0 var(--space-1); font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); }
+.sp-group__label { margin: 0 0 var(--space-1); font-size: 0.8125rem; font-weight: 500; color: var(--color-text-muted); }
 .sp-group__label--mine { color: var(--color-primary); }
 .sp-group__label--leak { color: var(--color-danger); }
 .sp-row { display: flex; align-items: center; gap: var(--space-2); min-height: 52px; border-bottom: 1px solid var(--color-border); }
@@ -61,3 +61,60 @@
 .sp-dow__b { min-width: 44px; height: 40px; padding: 0 var(--space-2); border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font: inherit; cursor: pointer; }
 .sp-dow__b[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary-tint); color: var(--color-primary); font-weight: 500; }
 .sp .panel__head { flex-wrap: wrap; gap: var(--space-2); }
+
+/* ---------------------------------------------------------------------
+   v2 — the coach. Today is a hero, the day as one bar, and one button.
+   Assumed minutes (the usual day standing in) are faded and hatched;
+   checking in makes them solid.
+   --------------------------------------------------------------------- */
+.sp-hero.is-assumed .kp-hero__big { color: var(--color-text-muted); }
+.sp-daycard { padding: var(--space-3) var(--space-4); margin-top: var(--space-3); }
+/* Committed and upkeep are quiet greys, so what is yours (the accent) and
+   drift (red: the one class that is plainly bad) carry the colour. */
+.sp .sp-bar__seg--fixed, .sp .sp-legend__item i.sp-bar__seg--fixed, .sp .sp-week__col .sp-bar__seg--fixed { background: color-mix(in srgb, var(--color-text-muted) 80%, var(--color-surface)); }
+.sp .sp-bar__seg--ess, .sp .sp-legend__item i.sp-bar__seg--ess, .sp .sp-week__col .sp-bar__seg--ess { background: color-mix(in srgb, var(--color-text-muted) 38%, var(--color-surface)); }
+.sp-bar { height: 28px; border-radius: 10px; gap: 2px; background: transparent; }
+.sp-bar__seg { border-radius: 4px; }
+.sp-bar__seg--none { background: var(--color-surface-sunken); }
+.sp-bar__seg.is-assumed, .sp-swatch.is-assumed {
+  opacity: .45;
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .45) 0 3px, transparent 3px 7px);
+}
+.sp-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background-color: var(--color-text-muted); vertical-align: -1px; margin-right: 6px; }
+.sp-legend__item i { border-radius: 3px; }
+#today-note:empty { display: none; }
+
+.sp-cta { display: grid; gap: var(--space-2); justify-items: center; margin-top: var(--space-4); }
+.sp-cta__sub { font-size: 0.875rem; color: var(--color-text-muted); text-align: center; min-height: 1.2em; }
+.sp-cta__sub:empty { display: none; }
+.sp-cta .btn--quiet { color: var(--color-primary); font-weight: 500; min-height: 44px; }
+.sp-assumed-note { margin-top: var(--space-3); font-size: 0.875rem; color: var(--color-text-muted); }
+
+/* Edit day: the twelve rows, as grouped lists. */
+.sp-status { margin: var(--space-3) var(--space-3) 0; font-size: 0.875rem; color: var(--color-text-muted); }
+.sp-gt--mine { color: var(--color-primary); }
+.list-group__card .sp-row { padding: 0 var(--space-2) 0 var(--space-3); border-bottom: 1px solid var(--color-border); }
+.list-group__card .sp-row:last-child { border-bottom: 0; }
+.sp-row__name small { display: block; font-size: 0.75rem; color: var(--color-text-muted); font-weight: 400; }
+.sp-row.is-assumed .sp-row__val { color: var(--color-text-muted); }
+.sp-step { border: 0; background: var(--color-surface-sunken); border-radius: 50%; width: 36px; height: 36px; margin: 4px; font-weight: 500; }
+.sp-row__val { min-width: 64px; font-weight: 600; }
+.sp-notecard { padding: 0; }
+.sp-notecard input { border: 0; background: transparent; padding: var(--space-3); min-height: 52px; width: 100%; }
+.sp-editacts { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-3) 0 var(--space-4); padding: 0 var(--space-1); }
+.sp-editacts .kp-muted-sm { margin-left: auto; }
+.sp-done { color: var(--color-primary); font-weight: 600; font-size: 1rem; }
+.sp-seg { margin: 0 0 var(--space-2); }
+.sp-seg .segmented { display: flex; }
+.sp-seg .segmented button { flex: 1; }
+.sp-pad { padding: var(--space-3); }
+.sp-pad .sp-target, .sp-pad .sp-dow { margin-top: 0; }
+.sp-week__day.is-assumed .sp-week__col i { opacity: .45; }
+.sp-week__day.is-assumed .sp-week__v { font-style: italic; }
+.sp .list-group > .panel { margin: 0; }
+.toast__undo { margin-left: var(--space-2); color: var(--color-primary); }
+/* On a phone the bottom bar sits over the end of the page; leave room. */
+@media (max-width: 640px) { .sp .kp-screen { padding-bottom: calc(var(--space-6) + var(--safe-bottom)); } }
+.list-group__card .sp-row__name b { white-space: normal; line-height: 1.25; overflow: visible; }
+.sp .kp-track i.sp-bar__seg--leak { background: var(--color-danger); }
+.sp .kp-catrow__name b { font-size: 1rem; }

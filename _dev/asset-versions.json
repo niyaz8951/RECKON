@@ -7,9 +7,9 @@
   },
   "/assets/css/global.css": {
     "versions": [
-      "34"
+      "35"
     ],
-    "sha": "7cdb0ed5b8f95970"
+    "sha": "c63bf104a9d41e24"
   },
   "/assets/js/config.js": {
     "versions": [
@@ -23,11 +23,17 @@
     ],
     "sha": "cad2e354a4098eee"
   },
+  "/assets/js/deck.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "0c29dc2433c12531"
+  },
   "/assets/js/global.js": {
     "versions": [
-      "37"
+      "38"
     ],
-    "sha": "476e295fd3e5d3f6"
+    "sha": "af95709ad6d24885"
   },
   "/assets/js/pwa.js": {
     "versions": [
@@ -37,9 +43,9 @@
   },
   "/assets/js/routes-core.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "9bee1a54ed9072a0"
+    "sha": "d0d9a95f9b17012f"
   },
   "/assets/vendor/supabase.js": {
     "versions": [
@@ -61,9 +67,9 @@
   },
   "/decided/decided.css": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "6f993070d67bc650"
+    "sha": "d96dc312a627da60"
   },
   "/decided/decided.js": {
     "versions": [
@@ -109,9 +115,9 @@
   },
   "/kept/kept.css": {
     "versions": [
-      "3"
+      "4"
     ],
-    "sha": "4529399cc8b87b8b"
+    "sha": "029beddd22d078f0"
   },
   "/kept/kept.js": {
     "versions": [
@@ -121,26 +127,32 @@
   },
   "/spent/spent-data.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "e830baf86fea397f"
+    "sha": "87b82c8d61b7915c"
   },
   "/spent/spent-engine.js": {
     "versions": [
+      "2"
+    ],
+    "sha": "399745afd8364ee0"
+  },
+  "/spent/spent-model.js": {
+    "versions": [
       "1"
     ],
-    "sha": "561ff810ee00e0e4"
+    "sha": "ad704efd1c54ec0e"
   },
   "/spent/spent.css": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "99ca7603662d36be"
+    "sha": "86f0e14526536b19"
   },
   "/spent/spent.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "cc2a1998601c9a3e"
+    "sha": "5fdd305e00a1841f"
   }
 }

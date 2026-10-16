@@ -254,6 +254,10 @@ create table if not exists public.kept_profile (
 -- The time ledger: one row per person per day, minutes by category in
 -- blocks_json ({"sleep":450,"work":540,…}); the person's categories, fixed
 -- commitments (rules) and target in profile_json.
+-- v2 (coach): blocks_json may also carry "_src", where each category's
+-- minutes came from (assumed | confirmed | focus | ai), and confirmed_at is
+-- when the day was checked in. A day with no "_src" predates v2 and counts
+-- as confirmed.
 create table if not exists public.spent_days (
   id          text primary key,                   -- sday_…
   user_id     uuid not null default auth.uid() references public.profiles(id) on delete cascade,
@@ -265,6 +269,7 @@ create table if not exists public.spent_days (
   unique (user_id, d)
 );
 create index if not exists idx_spent_days_user_d on public.spent_days(user_id, d);
+alter table public.spent_days add column if not exists confirmed_at text;   -- ISO time of the check-in, null = not checked in
 
 create table if not exists public.spent_profile (
   id           text primary key,                  -- sprf_…
@@ -367,3 +372,4 @@ grant usage, select on all sequences in schema public to authenticated;
 
 insert into public.migrations (name) values ('schema-2026-10-supabase') on conflict (name) do nothing;
 insert into public.migrations (name) values ('schema-2026-10-spent-decided') on conflict (name) do nothing;
+insert into public.migrations (name) values ('schema-2026-10-coach-1') on conflict (name) do nothing;

@@ -132,7 +132,7 @@ await t('service worker: every precached asset exists, and the version was bumpe
     // precached copy is a cache key nobody ever requests.
     if (u.includes('?v=')) ok(refs.has(u), 'precache entry not referenced by any page: ' + u);
   }
-  ok(/const VERSION = 'ssd-hub-v10'/.test(sw));
+  ok(/const VERSION = 'ssd-hub-v11'/.test(sw));
 });
 await t('every page sets the theme before first paint, with the same rule', async () => {
   const { readdirSync, statSync } = await import('node:fs');
@@ -151,17 +151,26 @@ await t('the [hidden] attribute always wins over a component\'s display', async 
   const css = readFileSync(resolve(ROOT, 'assets/css/global.css'), 'utf8');
   ok(/\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css));
 });
-await t('no page loads Google Fonts any more; every page preloads the local files', async () => {
+await t('the system font, no web fonts: no page loads or preloads a font file, and the type tokens are the system stack', async () => {
   const { readdirSync, statSync } = await import('node:fs');
   const walk = (d, out = []) => { for (const n of readdirSync(d)) { if (['node_modules', '.git', '_dev'].includes(n)) continue; const p = resolve(d, n); if (statSync(p).isDirectory()) walk(p, out); else if (n.endsWith('.html')) out.push(p); } return out; };
   for (const f of walk(ROOT)) {
     const s = readFileSync(f, 'utf8');
     ok(!/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(s), f + ' still points at Google Fonts');
-    if (!/offline\.html$/.test(f)) ok(/rel="preload" href="(\.\.\/)*assets\/fonts\//.test(s), f + ' does not preload the fonts');
+    ok(!/assets\/fonts\//.test(s), f + ' still references a font file');
   }
   const css = readFileSync(resolve(ROOT, 'assets/css/global.css'), 'utf8');
-  eq((css.match(/@font-face/g) || []).length, 8);
-  for (const m of css.matchAll(/url\('(\/assets\/fonts\/[^']+)'\)/g)) ok(existsSync(resolve(ROOT, '.' + m[1])), 'missing font ' + m[1]);
+  eq((css.match(/@font-face/g) || []).length, 0);
+  ok(/--font-body:\s*system-ui, -apple-system/.test(css) && /--font-heading:\s*system-ui/.test(css), 'system stack');
+  ok(/body \{[^}]*font-variant-numeric:\s*tabular-nums/.test(css), 'numbers are tabular');
+  ok(!existsSync(resolve(ROOT, 'assets/fonts')), 'font files removed');
+  ok(!/fonts\//.test(readFileSync(resolve(ROOT, 'sw.js'), 'utf8')), 'the worker precaches no fonts');
+});
+await t('section labels are sentence case: no app stylesheet uppercases text', async () => {
+  for (const f of ['assets/css/global.css', 'kept/kept.css', 'spent/spent.css', 'decided/decided.css']) {
+    const css = readFileSync(resolve(ROOT, f), 'utf8');
+    ok(!/text-transform:\s*uppercase/.test(css), f + ' still uppercases a label');
+  }
 });
 
 /* ------------------------------------------------------- sub-path hosting */

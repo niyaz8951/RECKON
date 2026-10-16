@@ -48,6 +48,34 @@ await t('spent: days are listed by range and come back in bootstrap', async () =
   eq((await call('/api/spent/days', 'GET', null, 'from=' + today)).body.days.length, 1);
   eq((await call('/api/spent/bootstrap', 'GET')).body.days.length, 2);
 });
+await t('spent v2: a check-in stamps confirmed_at; sources are kept beside the minutes and cleaned', async () => {
+  const d = SE.addDays(today, -3);
+  let r = await call('/api/spent/day', 'PUT', { d, blocks: { sleep: 420, work: 540, family: 90 }, src: { sleep: 'confirmed', work: 'assumed', family: 'focus', bogus: 'confirmed', screen: 'nonsense' } });
+  eq(r.status, 200, r.body.error);
+  eq(r.body.day.confirmed_at, null, 'not checked in yet');
+  eq(JSON.stringify(r.body.day.src), JSON.stringify({ sleep: 'confirmed', work: 'assumed', family: 'focus' }));
+  eq(r.body.day.blocks._src, undefined, 'sources never leak into the minutes');
+  eq(SE.srcOf(r.body.day, 'work'), 'assumed');
+  r = await call('/api/spent/day', 'PUT', { d, blocks: { sleep: 420, work: 540, family: 90 }, src: { work: 'confirmed' }, confirmed: true });
+  ok(/^\d{4}-\d{2}-\d{2}T/.test(r.body.day.confirmed_at), 'stamped: ' + r.body.day.confirmed_at);
+  eq(SE.srcOf(r.body.day, 'family'), 'confirmed', 'a checked-in day: unlisted keys are confirmed');
+  const stamp = r.body.day.confirmed_at;
+  // An old page (no src) keeps the sources already stored, and the check-in.
+  r = await call('/api/spent/day', 'PUT', { d, blocks: { sleep: 430, work: 540, family: 90 } });
+  eq(r.body.day.src.work, 'confirmed'); eq(r.body.day.confirmed_at, stamp);
+  const raw = JSON.parse((await S.admin('select blocks_json from public.spent_days where user_id = $1 and d = $2', [uid, d]))[0].blocks_json);
+  eq(raw._src.work, 'confirmed'); eq(raw.sleep, 430);
+  // A pre-v2 row (no _src) reads as confirmed.
+  r = await call('/api/spent/days', 'GET', null, 'from=' + yday + '&to=' + yday);
+  eq(r.body.days[0].src, null); eq(SE.srcOf(r.body.days[0], 'work'), 'confirmed');
+});
+await t('spent v2: a project without the new column gets a plain instruction, not a database error', async () => {
+  await S.admin('alter table public.spent_days rename column confirmed_at to confirmed_at_x');
+  try {
+    const r = await call('/api/spent/day', 'PUT', { d: SE.addDays(today, -4), blocks: { sleep: 420 }, src: {}, confirmed: true });
+    eq(r.status, 503); ok(/run supabase\/schema\.sql/.test(r.body.error), r.body.error);
+  } finally { await S.admin('alter table public.spent_days rename column confirmed_at_x to confirmed_at'); }
+});
 await t('spent: profile edits are validated and kept', async () => {
   let r = await call('/api/spent/profile', 'PUT', { target_bp: 2500, weekend: [0, 6], rules: { weekday: { sleep: 450, work: 600, nope: 10 }, weekend: { sleep: 500 } } });
   eq(r.status, 200, r.body.error); eq(r.body.profile.target_bp, 2500); eq(r.body.profile.weekend.join(','), '0,6'); eq(r.body.profile.rules.weekday.work, 600); eq(r.body.profile.rules.weekday.nope, undefined);

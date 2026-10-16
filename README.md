@@ -1,11 +1,11 @@
 # RECKON — the app hub
 
-A private, sign-in-only site at https://niyaz8951.github.io/Reckon/
+A private, sign-in-only site at https://niyaz8951.github.io/RECKON/
 that hosts personal apps under one shell. Vanilla HTML/CSS/JS, no build step,
 no AI.
 
 - **Hosting:** GitHub Pages, deployed from the `main` branch (repo
-  `niyaz8951/Reckon`). Every link is relative, so the site also
+  `niyaz8951/RECKON`). Every link is relative, so the site also
   works at the root of a domain without changes.
 - **Data, sign-in, book files:** Supabase (Postgres with row-level security,
   Supabase Auth, a private Storage bucket).
@@ -13,7 +13,7 @@ no AI.
 | App | Where | What it is |
 |---|---|---|
 | **KEPT** | `/kept/` | Household money review: ledger, EMIs, recurring, budgets, the path to a keep-rate target, and an analysis worked out in code from your own numbers. Excel import/export. |
-| **SPENT** | `/spent/` | The time ledger. Each day is 24 hours split across categories in four classes — committed (sleep, work, commute), upkeep, **yours by choice** (family, learning, exercise, friends, making), drift (screens). Keep-rate for time, "yours today" with what is still committed, the week side by side, a daily lesson, and your hours priced with KEPT's income. |
+| **SPENT** | `/spent/` | Where your time goes, without a timesheet. It learns your usual day per weekday (`spent/spent-model.js`, plain statistics) and assumes it; an evening check-in of at most five swipe questions corrects it — a usual day is one "yes". Committed, upkeep, **yours by choice**, drift; keep-rate for time, the week, a daily lesson, hours priced with KEPT's income. The full list of categories is behind "Edit day". |
 | **DECIDED** | `/decided/` | The decision journal. Log what you decided, what you expect and how sure you are; the app asks you back on the review date. Over time: calibration (does "80% sure" mean 80% for you?), Brier score, by-area accuracy, your own lessons. |
 
 First time? Follow **SETUP.md**.
@@ -68,4 +68,4 @@ test failed.
 
 Links: write them relative in HTML (`../assets/…`), and in JS build them with
 `TN.url('kept/settings/')` — never `'/kept/…'`, which would leave the
-`/Reckon/` folder. The shell test fails on a root-absolute link.
+`/RECKON/` folder. The shell test fails on a root-absolute link.

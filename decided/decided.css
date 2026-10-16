@@ -1,9 +1,12 @@
 /* DECIDED — what kept.css does not already give it. */
+/* Decisions read as grouped rows: flat cards on the grey; inside a panel,
+   rows divided by a hairline. Stakes are words in the meta line, not a
+   coloured edge — red is kept for good/bad. */
 .dc-list { display: grid; gap: var(--space-3); }
-.dc-card { background: var(--color-surface); border: 1px solid var(--color-border); border-left-width: 4px; border-radius: var(--radius-md); padding: var(--space-3); }
-.dc-card--low { border-left-color: var(--color-border); }
-.dc-card--medium { border-left-color: var(--color-primary); }
-.dc-card--high { border-left-color: var(--color-danger); }
+.dc-card { background: var(--color-surface); border: 0; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); }
+.panel .dc-list { gap: 0; }
+.panel .dc-card { background: transparent; border-radius: 0; padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.panel .dc-list > .dc-card:first-child { border-top: 0; padding-top: 0; }
 .dc-card.is-due { background: var(--color-primary-tint); }
 .dc-card__top { display: flex; align-items: flex-start; gap: var(--space-2); }
 .dc-card__dom { flex: none; width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--color-surface-sunken); color: var(--color-primary); }

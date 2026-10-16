@@ -1,12 +1,12 @@
 # Setting up RECKON on GitHub Pages + Supabase
 
-The site lives at **https://niyaz8951.github.io/Reckon/**: the
-`niyaz8951/Reckon` repository, published by GitHub Pages, with its
+The site lives at **https://niyaz8951.github.io/RECKON/**: the
+`niyaz8951/RECKON` repository, published by GitHub Pages, with its
 data in Supabase. Each step happens in a browser, except pushing files, which
 you do in GitHub Desktop.
 
 All links in the site are relative, and the service worker registers for its
-own folder. So the same files work at `/Reckon/` today, and at the
+own folder. So the same files work at `/RECKON/` today, and at the
 root of a custom domain later.
 
 ## 1. Supabase project (done once)
@@ -21,8 +21,8 @@ root of a custom domain later.
 
 Go to **Authentication → URL Configuration**:
 
-- **Site URL**: `https://niyaz8951.github.io/Reckon/`
-- **Redirect URLs**: add `https://niyaz8951.github.io/Reckon/login/`.
+- **Site URL**: `https://niyaz8951.github.io/RECKON/`
+- **Redirect URLs**: add `https://niyaz8951.github.io/RECKON/login/`.
   For testing on your PC, also add `http://localhost:8080/login/`.
 
 Then go to **Authentication → Sign In / Providers → Email**. Keep Email on.
@@ -47,7 +47,7 @@ If you ever change project:
 
 ## 4. Push to the repository
 
-1. Unzip over your local copy of `Reckon`.
+1. Unzip over your local copy of `RECKON`.
 2. Delete the files listed under "Remove" in CHANGES.md.
 3. Make sure the hidden files come along. Windows Explorer hides them by
    default: turn them on with View → Show → Hidden items.
@@ -66,7 +66,7 @@ If you ever change project:
 
 ## 5. First sign-in
 
-1. Open https://niyaz8951.github.io/Reckon/ and click
+1. Open https://niyaz8951.github.io/RECKON/ and click
    **Create account**. The first account ever made becomes the **admin** and
    is active at once.
 2. Sign in. Open **Account → Admin → Health**. It should show
@@ -80,12 +80,13 @@ post an announcement.
 
 - **KEPT:** export to Excel from the old app. Then, on the new site, go to
   **Account → KEPT settings → Upload Excel**, check the preview, and confirm.
+- **SPENT check-in (16 Oct 2026):** run `supabase/schema.sql` once more — it adds `spent_days.confirmed_at` and nothing else. Until it is run, checking in shows a message saying exactly that.
 - **SPENT and DECIDED:** their tables are in the same `supabase/schema.sql`; a project set up before 15 Oct 2026 just needs the file run again (it adds what is missing and changes nothing else). `supabase/drop-library.sql` removes the old Library/Dictionary tables if you want them gone.
 
-## 7. Renaming the repository to Reckon
+## 7. Renaming the repository to RECKON
 
-GitHub → repository Settings → rename `StarsShineDown` to `Reckon`. GitHub
-Pages then serves the site at `/Reckon/` (the old address redirects). Two
+GitHub → repository Settings → rename `StarsShineDown` to `RECKON`. GitHub
+Pages then serves the site at `/RECKON/` (the old address redirects). Two
 things to update afterwards: the Supabase Auth **Site URL** and **Redirect
 URLs** (section 2) to the new address, and any home-screen install, which
 is tied to the old path — remove it and add the new one.
@@ -115,9 +116,9 @@ npm run serve        # http://localhost:8080
 - **Your github.io address is shared.** Every Pages project in your account
   lives on the same `niyaz8951.github.io` origin, so other repos you publish
   there are same-site neighbours. The site handles this:
-  - The service worker caches only `/Reckon/` and deletes only its own
+  - The service worker caches only `/RECKON/` and deletes only its own
     caches.
-  - The sign-in return link must stay inside `/Reckon/`.
+  - The sign-in return link must stay inside `/RECKON/`.
   - Sign-in is kept under its own key (`tn-auth`).
 - **Security is in the database.** Anyone can download the pages, but
   signed-out, pending and suspended accounts get no rows and no book files.

@@ -29,7 +29,7 @@
  * a shared device honest even though the shell holds nothing personal.
  */
 
-const VERSION = 'ssd-hub-v10';   // runs under a sub-path (GitHub project site)
+const VERSION = 'ssd-hub-v11';   // runs under a sub-path (GitHub project site)
 
 /* Where the site lives: '/' on its own domain, '/Reckon/' on a GitHub
    project site. The worker sits at the site root, so its own folder is the
@@ -50,35 +50,31 @@ const PRECACHE = [
   '/', '/kept/', '/kept/settings/', '/spent/', '/decided/', '/account/',
   // Exactly as the pages reference them, ?v= included, so the cache key
   // matches. The shell test fails if one of these drifts from the markup.
-  '/assets/css/global.css?v=34',
+  '/assets/css/global.css?v=35',
   '/assets/js/config.js?v=2',
   '/assets/vendor/supabase.js?v=1',
   '/assets/js/db.js?v=2',
-  '/assets/js/routes-core.js?v=1',
-  '/assets/js/global.js?v=37',
+  '/assets/js/routes-core.js?v=2',
+  '/assets/js/global.js?v=38',
   '/assets/js/pwa.js?v=5',
-  '/kept/kept.css?v=3',
+  '/assets/js/deck.js?v=1',
+  '/kept/kept.css?v=4',
   '/kept/kept-engine.js?v=1',
   '/kept/kept-core.js?v=1',
   '/kept/kept-data.js?v=1',
   '/kept/kept-store.js?v=1',
   '/kept/kept-import.js?v=2',
   '/kept/kept.js?v=5',
-  '/spent/spent.css?v=1',
-  '/spent/spent-engine.js?v=1',
-  '/spent/spent-data.js?v=1',
-  '/spent/spent.js?v=1',
-  '/decided/decided.css?v=1',
+  '/spent/spent.css?v=2',
+  '/spent/spent-engine.js?v=2',
+  '/spent/spent-model.js?v=1',
+  '/spent/spent-data.js?v=2',
+  '/spent/spent.js?v=2',
+  '/decided/decided.css?v=2',
   '/decided/decided-engine.js?v=1',
   '/decided/decided-data.js?v=1',
   '/decided/decided.js?v=1',
-  '/assets/icons/icon-192.png',
-  '/assets/fonts/inter-latin-400-normal.woff2',
-  '/assets/fonts/inter-latin-500-normal.woff2',
-  '/assets/fonts/inter-latin-600-normal.woff2',
-  '/assets/fonts/sora-latin-500-normal.woff2',
-  '/assets/fonts/sora-latin-600-normal.woff2',
-  '/assets/fonts/jetbrains-mono-latin-400-normal.woff2'
+  '/assets/icons/icon-192.png'
 ].map(U);
 
 self.addEventListener('install', (event) => {

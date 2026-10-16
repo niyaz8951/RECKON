@@ -80,6 +80,31 @@
     Object.keys(blocks || {}).forEach(function (k) { out[clsOf(prof, k)] += Number(blocks[k]) || 0; });
     return out;
   }
+  /* Where a category's minutes on a day came from:
+       confirmed  you said so (check-in, Edit day, or any day logged before v2)
+       focus      a Focus timer measured it
+       ai         Quick add parsed it and you swiped yes
+       assumed    nobody said; it is the usual day standing in
+     day.src is the per-category map the data layer reads out of blocks_json.
+     A day with no map at all was written before v2 by hand: confirmed.
+     Otherwise a key without an entry is confirmed if the day was checked in
+     (confirmed_at) and assumed if not. */
+  var SRC = ['assumed', 'confirmed', 'focus', 'ai'];
+  function srcOf(day, key) {
+    if (!day || !day.src) return 'confirmed';
+    var s = day.src[key];
+    if (SRC.indexOf(s) !== -1) return s;
+    return day.confirmed_at ? 'confirmed' : 'assumed';
+  }
+  /* Share of a day's minutes that someone actually stood behind. */
+  function confirmedShare(day, prof) {
+    var b = (day && day.blocks) || {}, t = 0, c = 0;
+    Object.keys(b).forEach(function (k) { var m = Number(b[k]) || 0; t += m; if (srcOf(day, k) !== 'assumed') c += m; });
+    if (!t) return day && (day.confirmed_at || !day.src) ? 1 : 0;
+    return c / t;
+  }
+  var ASSUMED_WEIGHT = 0.35;   // an assumed day counts about a third of a confirmed one
+
   /* The usual day for a date: the rules for a weekday or a weekend day. */
   function usual(d, prof) { return Object.assign({}, isWeekend(d, prof) ? prof.rules.weekend : prof.rules.weekday); }
 
@@ -121,24 +146,47 @@
       projRate: Math.min(100, (yoursSoFar + Math.min(free, stillNeeded)) / s.waking * 100) };
   }
 
-  /* The record: days -> averages, streaks, trends. days = [{d, blocks}]. */
-  function build(days, prof, today) {
+  /* The record: days -> averages, streaks, trends. days = [{d, blocks,
+     src?, confirmed_at?}]. opts.assume(d) -> blocks fills the days with no
+     row between the first day on record and yesterday (the usual day,
+     standing in); those rows are marked assumed and weigh less in every
+     average, and each average says how much of it was assumed. */
+  function build(days, prof, today, opts) {
     prof = profileOf(prof);
-    var rows = (days || []).map(function (x) { return { d: x.d, s: dayStats(x.blocks, prof), note: x.note || '' }; })
-      .filter(function (x) { return x.s.logged; }).sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+    opts = opts || {};
+    var rows = (days || []).map(function (x) {
+      var share = confirmedShare(x, prof);
+      return { d: x.d, s: dayStats(x.blocks, prof), note: x.note || '', share: share, assumed: share === 0, w: ASSUMED_WEIGHT + (1 - ASSUMED_WEIGHT) * share, confirmed_at: x.confirmed_at || null };
+    }).filter(function (x) { return x.s.logged; });
+    if (opts.assume && rows.length) {
+      var have = {}; rows.forEach(function (r) { have[r.d] = 1; });
+      var first = rows.reduce(function (m, r) { return r.d < m ? r.d : m; }, today);
+      for (var dd = first; dd < today; dd = addDays(dd, 1)) {
+        if (have[dd]) continue;
+        var ab = opts.assume(dd);
+        if (ab && total(ab) > 0) rows.push({ d: dd, s: dayStats(ab, prof), note: '', share: 0, assumed: true, w: ASSUMED_WEIGHT, confirmed_at: null });
+      }
+    }
+    rows.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
     var byD = {}; rows.forEach(function (r) { byD[r.d] = r; });
     function window_(n, endExclusive) {
       var out = [];
       for (var i = 1; i <= n; i++) { var d = addDays(endExclusive, -i); if (byD[d]) out.push(byD[d]); }
       return out;
     }
+    /* Weighted: a confirmed day counts 1, an assumed one ASSUMED_WEIGHT.
+       out.assumed = share of the days' weightless count that was assumed
+       (0 … 1), so a screen can say "mostly assumed". */
     function avg(list) {
-      var n = list.length || 1, acc = { kept: 0, waking: 0, sleep: 0, leak: 0, fixed: 0, ess: 0, cat: {} };
+      var W = 0, acc = { kept: 0, waking: 0, sleep: 0, leak: 0, fixed: 0, ess: 0, cat: {} }, unconf = 0;
       list.forEach(function (r) {
-        acc.kept += r.s.kept; acc.waking += r.s.waking; acc.sleep += r.s.sleep; acc.leak += r.s.cls.leak; acc.fixed += r.s.cls.fixed; acc.ess += r.s.cls.ess;
-        Object.keys(r.s.blocks).forEach(function (k) { acc.cat[k] = (acc.cat[k] || 0) + r.s.blocks[k]; });
+        var w = r.w == null ? 1 : r.w; W += w; unconf += 1 - (r.share == null ? 1 : r.share);
+        acc.kept += w * r.s.kept; acc.waking += w * r.s.waking; acc.sleep += w * r.s.sleep; acc.leak += w * r.s.cls.leak; acc.fixed += w * r.s.cls.fixed; acc.ess += w * r.s.cls.ess;
+        Object.keys(r.s.blocks).forEach(function (k) { acc.cat[k] = (acc.cat[k] || 0) + w * r.s.blocks[k]; });
       });
-      var out = { n: list.length, kept: acc.kept / n, waking: acc.waking / n, sleep: acc.sleep / n, leak: acc.leak / n, fixed: acc.fixed / n, ess: acc.ess / n, cat: {} };
+      var n = W || 1;
+      var out = { n: list.length, confirmedN: list.filter(function (r) { return !r.assumed; }).length, assumed: list.length ? unconf / list.length : 0,
+        kept: acc.kept / n, waking: acc.waking / n, sleep: acc.sleep / n, leak: acc.leak / n, fixed: acc.fixed / n, ess: acc.ess / n, cat: {} };
       Object.keys(acc.cat).forEach(function (k) { out.cat[k] = acc.cat[k] / n; });
       out.rate = out.waking > 0 ? out.kept / out.waking * 100 : 0;
       out.leakRate = out.waking > 0 ? out.leak / out.waking * 100 : 0;
@@ -146,11 +194,13 @@
     }
     var tomorrow = addDays(today, 1);
     var w7 = window_(7, tomorrow), w7prev = window_(7, addDays(today, -6)), w28 = window_(28, tomorrow);
-    // Streak: consecutive logged days ending today or yesterday.
-    var streak = 0, cursor = byD[today] ? today : addDays(today, -1);
-    while (byD[cursor]) { streak++; cursor = addDays(cursor, -1); }
-    var best = rows.slice().sort(function (a, b) { return b.s.kept - a.s.kept; })[0] || null;
-    return { prof: prof, rows: rows, byD: byD, n: rows.length, week: avg(w7), prevWeek: avg(w7prev), month: avg(w28), all: avg(rows),
+    // Streak: consecutive checked-in days ending today or yesterday.
+    var real = function (d) { return byD[d] && !byD[d].assumed; };
+    var streak = 0, cursor = real(today) ? today : addDays(today, -1);
+    while (real(cursor)) { streak++; cursor = addDays(cursor, -1); }
+    var best = rows.filter(function (r) { return r.share >= 0.5; }).sort(function (a, b) { return b.s.kept - a.s.kept; })[0] || null;
+    return { prof: prof, rows: rows, byD: byD, n: rows.length, confirmedN: rows.filter(function (r) { return !r.assumed; }).length,
+      week: avg(w7), prevWeek: avg(w7prev), month: avg(w28), all: avg(rows),
       streak: streak, best: best, firstDay: rows.length ? rows[0].d : null };
   }
 
@@ -194,6 +244,7 @@
     DAY: DAY, DEFAULT_CATS: DEFAULT_CATS, DEFAULT_RULES: DEFAULT_RULES, PROFILE_DEFAULTS: PROFILE_DEFAULTS, CLASS_LABEL: CLASS_LABEL,
     iso: iso, parse: parse, addDays: addDays, dow: dow, isWeekend: isWeekend, hm: hm, hours1: hours1, pct: pct,
     profileOf: profileOf, catMap: catMap, clsOf: clsOf, cleanBlocks: cleanBlocks, total: total, byClass: byClass, usual: usual,
+    SRC: SRC, srcOf: srcOf, confirmedShare: confirmedShare, ASSUMED_WEIGHT: ASSUMED_WEIGHT,
     dayStats: dayStats, todayStatus: todayStatus, build: build, weekRows: weekRows, lesson: lesson
   };
 })(typeof window !== 'undefined' ? window : globalThis);

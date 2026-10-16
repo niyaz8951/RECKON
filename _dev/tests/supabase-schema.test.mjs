@@ -20,6 +20,11 @@ await t('the schema runs a second time on a live database without error', async 
   await S.pg.exec(schema);
   eq((await S.admin("select count(*)::int as n from public.migrations where name = 'schema-2026-10-supabase'"))[0].n, 1);
 });
+await t('v2 coach, phase 1: spent_days.confirmed_at exists and the migration marker is recorded', async () => {
+  const cols = await S.admin("select column_name from information_schema.columns where table_schema = 'public' and table_name = 'spent_days' and column_name = 'confirmed_at'");
+  eq(cols.length, 1);
+  eq((await S.admin("select count(*)::int as n from public.migrations where name = 'schema-2026-10-coach-1'"))[0].n, 1);
+});
 await t('every public table has row-level security on', async () => {
   const rows = await S.admin("select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity");
   eq(rows.length, 0, rows.map((r) => r.relname).join(', '));

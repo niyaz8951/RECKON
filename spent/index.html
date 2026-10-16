@@ -11,12 +11,10 @@
   <meta name="apple-mobile-web-app-title" content="RECKON">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="preload" href="../assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="../assets/fonts/sora-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
-  <link rel="stylesheet" href="../assets/css/global.css?v=34">
-  <link rel="stylesheet" href="../kept/kept.css?v=3">
-  <link rel="stylesheet" href="../spent/spent.css?v=1">
+  <link rel="stylesheet" href="../assets/css/global.css?v=35">
+  <link rel="stylesheet" href="../kept/kept.css?v=4">
+  <link rel="stylesheet" href="../spent/spent.css?v=2">
   <title>SPENT — RECKON</title>
   <meta name="description" content="SPENT — how much of your time stays yours.">
 </head>
@@ -47,29 +45,51 @@
     </div>
 
     <!-- ============================== Today -->
+    <!-- One job: know how much of today is yours. One action: Check in. -->
     <section class="kp-screen" data-screen="today" hidden>
+      <div id="today-hero"></div>
+      <div class="panel sp-daycard">
+        <div class="sp-bar" id="today-bar" aria-label="The day as a bar" role="img"></div>
+        <div class="sp-legend" id="today-legend"></div>
+        <p class="sp-unalloc" id="today-note"></p>
+      </div>
+      <div class="sp-cta">
+        <button type="button" class="btn btn--primary btn--lg btn--block" id="checkin">Check in</button>
+        <p class="sp-cta__sub" id="checkin-sub" aria-live="polite"></p>
+        <button type="button" class="btn btn--quiet" id="edit-open">Edit day</button>
+      </div>
+    </section>
+
+    <!-- ============================== Edit day (pushed from Today or Week) -->
+    <!-- The full list, for the days the check-in did not cover. -->
+    <section class="kp-screen" data-screen="edit" hidden>
+      <nav class="nav-bar" aria-label="Edit day">
+        <button type="button" class="nav-bar__back" id="edit-back"><span data-icon="chevron-left"></span><span id="edit-back-label">Today</span></button>
+        <h1 class="nav-bar__title" tabindex="-1">Edit day</h1>
+        <div class="nav-bar__end"><button type="button" class="btn btn--quiet btn--sm sp-done" id="edit-done">Done</button></div>
+      </nav>
       <div class="sp-daynav">
         <button type="button" class="btn btn--quiet btn--sm" id="day-prev" aria-label="Previous day"><span data-icon="chevron-left"></span></button>
         <button type="button" class="sp-daynav__date" id="day-pick" aria-label="Pick a day"><b id="day-label">Today</b><span id="day-sub"></span></button>
         <button type="button" class="btn btn--quiet btn--sm" id="day-next" aria-label="Next day"><span data-icon="chevron-right"></span></button>
         <input type="date" id="day-input" class="sr-only" aria-hidden="true" tabindex="-1">
       </div>
-      <div id="today-hero"></div>
-      <div class="panel">
+      <div class="panel sp-daycard">
         <div class="sp-bar" id="day-bar" aria-label="The day as a bar" role="img"></div>
         <div class="sp-legend" id="day-legend"></div>
         <div class="sp-unalloc" id="day-unalloc"></div>
       </div>
-      <div class="panel">
-        <div class="panel__head"><h2>Where the hours went</h2>
-          <div class="sp-headbtns">
-            <button type="button" class="btn btn--ghost btn--sm" id="day-usual" title="Fill from your usual day">Fill usual</button>
-            <button type="button" class="btn btn--quiet btn--sm" id="day-clear" title="Clear this day">Clear</button>
-          </div></div>
-        <div id="day-rows" class="sp-rows"></div>
-        <div class="field" style="margin-top:var(--space-3)"><label for="day-note">A line about the day <span class="muted">(optional)</span></label>
-          <input id="day-note" type="text" maxlength="500" placeholder="What made it good, or not."></div>
-        <p class="kp-muted-sm" id="day-saved" aria-live="polite"></p>
+      <p class="sp-status" id="day-status" aria-live="polite"></p>
+      <div id="day-rows"></div>
+      <div class="list-group">
+        <p class="list-group__title">A line about the day</p>
+        <div class="list-group__card sp-notecard"><label for="day-note" class="sr-only">A line about the day</label>
+          <input id="day-note" type="text" maxlength="500" placeholder="What made it good, or not (optional)"></div>
+      </div>
+      <div class="sp-editacts">
+        <button type="button" class="btn btn--ghost btn--sm" id="day-usual">Fill usual</button>
+        <button type="button" class="btn btn--quiet btn--sm" id="day-clear">Clear</button>
+        <span class="kp-muted-sm" id="day-saved" aria-live="polite"></span>
       </div>
     </section>
 
@@ -84,24 +104,28 @@
     </section>
 
     <!-- ============================== Usual day (settings) -->
+    <!-- One job: tell RECKON where to start. It learns the rest. -->
     <section class="kp-screen" data-screen="settings" hidden>
-      <div class="panel">
-        <div class="panel__head"><div><h2>Your usual day</h2><p class="muted">What a normal weekday and weekend look like before you choose anything. "Fill usual" on Today starts from this; the committed hours come from it too.</p></div></div>
-        <div class="segmented" id="rule-seg" role="group" aria-label="Day type">
+      <div class="list-group">
+        <p class="list-group__title">Your usual day</p>
+        <div class="sp-seg"><div class="segmented" id="rule-seg" role="group" aria-label="Day type">
           <button type="button" data-rule="weekday" aria-pressed="true">Weekday</button>
           <button type="button" data-rule="weekend" aria-pressed="false">Weekend</button>
+        </div></div>
+        <div id="rule-rows"></div>
+        <p class="list-group__note" id="rule-total"></p>
+        <p class="list-group__note">Where RECKON starts before it has learned your weeks. After a few check-ins your own days take over.</p>
+      </div>
+      <div class="list-group">
+        <p class="list-group__title">Your target</p>
+        <div class="list-group__card sp-pad">
+          <div class="sp-target"><input type="range" id="target-range" min="5" max="60" step="5" aria-label="Target share of waking hours"><b id="target-label"></b></div>
         </div>
-        <div id="rule-rows" class="sp-rows"></div>
-        <p class="kp-muted-sm" id="rule-total"></p>
+        <p class="list-group__note">The share of waking hours that should be yours by choice — family, learning, exercise, friends, making. Most people who measure it find they are at 8–12%.</p>
       </div>
-      <div class="panel">
-        <div class="panel__head"><div><h2>Your target</h2><p class="muted">The share of waking hours that should be yours by choice — family, learning, exercise, friends, making.</p></div></div>
-        <div class="sp-target"><input type="range" id="target-range" min="5" max="60" step="5"><b id="target-label"></b></div>
-        <p class="kp-muted-sm">20% of a 17-hour waking day is 3h 24m. Most people who measure it find they are at 8–12%.</p>
-      </div>
-      <div class="panel">
-        <div class="panel__head"><div><h2>Weekend days</h2><p class="muted">Which days use the weekend pattern.</p></div></div>
-        <div class="sp-dow" id="dow-pick"></div>
+      <div class="list-group">
+        <p class="list-group__title">Weekend days</p>
+        <div class="list-group__card sp-pad"><div class="sp-dow" id="dow-pick"></div></div>
       </div>
     </section>
   </main>
@@ -128,15 +152,17 @@
   <script src="../assets/js/config.js?v=2"></script>
   <script src="../assets/vendor/supabase.js?v=1"></script>
   <script src="../assets/js/db.js?v=2"></script>
-  <script src="../assets/js/routes-core.js?v=1"></script>
-  <script src="../assets/js/global.js?v=37"></script>
+  <script src="../assets/js/routes-core.js?v=2"></script>
+  <script src="../assets/js/global.js?v=38"></script>
   <script src="../assets/js/pwa.js?v=5"></script>
   <!-- KEPT's data layer too: when there is a salary on record, the
        Insights screen prices the hours with it. -->
   <script src="../kept/kept-core.js?v=1" defer></script>
   <script src="../kept/kept-data.js?v=1" defer></script>
-  <script src="../spent/spent-engine.js?v=1" defer></script>
-  <script src="../spent/spent-data.js?v=1" defer></script>
-  <script src="../spent/spent.js?v=1" defer></script>
+  <script src="../assets/js/deck.js?v=1" defer></script>
+  <script src="../spent/spent-engine.js?v=2" defer></script>
+  <script src="../spent/spent-model.js?v=1" defer></script>
+  <script src="../spent/spent-data.js?v=2" defer></script>
+  <script src="../spent/spent.js?v=2" defer></script>
 </body>
 </html>

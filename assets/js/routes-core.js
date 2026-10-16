@@ -184,7 +184,7 @@
   var EXPECTED_TABLES = ['profiles', 'settings', 'audit_log', 'migrations',
     'kept_transactions', 'kept_categories', 'kept_emis', 'kept_recurring', 'kept_budgets', 'kept_profile',
     'spent_days', 'spent_profile', 'decisions'];
-  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided'];
+  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided', 'schema-2026-10-coach-1'];
   route('GET', '/api/admin/health', async function (r) {
     await r.admin();
     var problems = [], counts = {}, migrations = [];
@@ -193,6 +193,9 @@
       try { counts[t] = await db.count(t); }
       catch (e) { counts[t] = null; problems.push('table missing or unreadable: ' + t + ' — run supabase/schema.sql'); }
     }
+    // Columns added by later migrations, which a count cannot see.
+    try { await db.select('spent_days', { columns: 'id,confirmed_at', limit: 1 }); }
+    catch (e) { if (counts.spent_days != null) problems.push('column missing: spent_days.confirmed_at — run supabase/schema.sql'); }
     try {
       migrations = await db.select('migrations', { order: [['applied_at', 'asc']] });
       var have = migrations.map(function (m) { return m.name; });

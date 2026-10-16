@@ -311,6 +311,7 @@
 
   // ---------------------------------------------------------- chrome
   var session = { user: null, loaded: false, mounting: null };
+  var TN_largeTitle = function () {};
 
   /* Initials when there is no photo: first letters of the first two words
      of the name, or of the email's local part. */
@@ -351,7 +352,7 @@
       : (isAuthPage() ? '' : '<a class="btn btn--primary btn--sm" href="' + url('login/') + '">Sign in</a>');
     return '<div class="site-header__inner">' +
       '<a class="brand" href="' + BASE + '" aria-label="RECKON — all apps"><span class="brand__mark">' + icon('tally', 16) + '</span><span class="brand__name">RECKON</span></a>' +
-      '<span class="site-header__title">' + esc(pageTitle()) + '</span>' +
+      '<span class="site-header__title"><span data-t="app">' + esc(pageTitle()) + '</span><span data-t="page" aria-hidden="true"></span></span>' +
       '<nav class="site-nav" aria-label="Apps">' + links + '</nav>' +
       '<div class="header-actions">' +
       '<button class="btn btn--quiet btn--sm" data-theme-toggle aria-label="Switch colour theme">' + icon('moon', 18) + '</button>' +
@@ -589,6 +590,34 @@
     document.addEventListener('pointercancel', end);
   })();
 
+  /* The large title collapses into the bar (phones). While the page's big
+     <h1> is on screen the bar says the app's name; once it has scrolled
+     under the bar, the bar says the title instead — the iOS navigation bar.
+     A hairline appears under the bar once anything has scrolled beneath it. */
+  (function largeTitle() {
+    var queued = false;
+    function bigTitle() {
+      var hs = els('main h1');
+      for (var i = 0; i < hs.length; i++) if (hs[i].offsetParent !== null || hs[i].getClientRects().length) return hs[i];
+      return null;
+    }
+    function update() {
+      queued = false;
+      var header = el('.site-header'); if (!header) return;
+      var h = bigTitle(), hb = header.getBoundingClientRect().bottom;
+      var collapsed = !!(h && h.getBoundingClientRect().bottom < hb + 2);
+      var slot = header.querySelector('[data-t="page"]');
+      if (slot && h && slot.textContent !== h.textContent) slot.textContent = h.textContent;
+      header.classList.toggle('is-collapsed', collapsed);
+      header.classList.toggle('is-scrolled', (window.scrollY || 0) > 2);
+    }
+    function queue() { if (!queued) { queued = true; (window.requestAnimationFrame || setTimeout)(update); } }
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    document.addEventListener('tn:ready', queue);
+    TN_largeTitle = queue;
+  })();
+
   /* Adds the grab handle to every bottom sheet, so no page has to. */
   function addGrabs(root) {
     els('dialog.sheet .sheet__panel', root).forEach(function (p) {
@@ -645,7 +674,9 @@
     base: BASE, url: url, sitePath: sitePath,
     loadScript: loadScript, cachedUser: cachedUser, clearLocal: clearLocal,
     avatarHTML: avatarHTML, initials: initials, themePref: themePref, applyTheme: applyTheme,
-    rememberUser: rememberUser, repaintChrome: function () { paintChrome(); }
+    rememberUser: rememberUser, repaintChrome: function () { paintChrome(); TN_largeTitle(); },
+    /* Pages call this after changing their <h1> (a screen switch). */
+    titleChanged: function () { TN_largeTitle(); }
   };
   window.TN = TN;
 
