@@ -80,6 +80,7 @@ post an announcement.
 
 - **KEPT:** export to Excel from the old app. Then, on the new site, go to
   **Account → KEPT settings → Upload Excel**, check the preview, and confirm.
+- **SPENT countdowns and Focus (16 Oct 2026, later):** run `supabase/schema.sql` once more — it adds the `goals` and `focus_sessions` tables. Until then SPENT works as before and the Countdowns list says what to run.
 - **SPENT check-in (16 Oct 2026):** run `supabase/schema.sql` once more — it adds `spent_days.confirmed_at` and nothing else. Until it is run, checking in shows a message saying exactly that.
 - **SPENT and DECIDED:** their tables are in the same `supabase/schema.sql`; a project set up before 15 Oct 2026 just needs the file run again (it adds what is missing and changes nothing else). `supabase/drop-library.sql` removes the old Library/Dictionary tables if you want them gone.
 

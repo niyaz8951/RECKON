@@ -12,9 +12,9 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
-  <link rel="stylesheet" href="../assets/css/global.css?v=35">
+  <link rel="stylesheet" href="../assets/css/global.css?v=36">
   <link rel="stylesheet" href="../kept/kept.css?v=4">
-  <link rel="stylesheet" href="../spent/spent.css?v=2">
+  <link rel="stylesheet" href="../spent/spent.css?v=3">
   <title>SPENT — RECKON</title>
   <meta name="description" content="SPENT — how much of your time stays yours.">
 </head>
@@ -56,7 +56,15 @@
       <div class="sp-cta">
         <button type="button" class="btn btn--primary btn--lg btn--block" id="checkin">Check in</button>
         <p class="sp-cta__sub" id="checkin-sub" aria-live="polite"></p>
-        <button type="button" class="btn btn--quiet" id="edit-open">Edit day</button>
+        <div class="sp-cta__links">
+          <button type="button" class="btn btn--quiet" id="edit-open">Edit day</button>
+          <button type="button" class="btn btn--quiet" id="focus-open"><span data-icon="clock" data-icon-size="16"></span> Focus</button>
+        </div>
+      </div>
+      <div class="list-group" id="goals-group">
+        <p class="list-group__title">Countdowns</p>
+        <div class="list-group__card" id="goals-list"></div>
+        <p class="list-group__note" id="goals-note"></p>
       </div>
     </section>
 
@@ -146,14 +154,44 @@
     </form>
   </dialog>
 
+  <!-- A countdown: a goal with a date, an optional hours target and the
+       category its time is counted from. -->
+  <dialog class="sheet" id="goal-sheet" aria-labelledby="gs-title">
+    <form class="sheet__panel" id="goal-form" method="dialog" novalidate>
+      <div class="sheet__head"><h2 id="gs-title">New countdown</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div class="field"><label for="gs-name">What is it?</label><input id="gs-name" type="text" maxlength="80" placeholder="Finish the Python course" autocomplete="off"></div>
+      <div class="field-row">
+        <div class="field"><label for="gs-due">By</label><input id="gs-due" type="date"></div>
+        <div class="field"><label for="gs-hours">Hours to put in <span class="muted">(optional)</span></label><input id="gs-hours" type="number" inputmode="decimal" min="0" step="0.5" placeholder="40"></div>
+      </div>
+      <div class="field"><label for="gs-cat">Count time from</label><select id="gs-cat"></select>
+        <p class="hint">Minutes you check in under this category count towards it. "Focus only" counts just the timer.</p></div>
+      <label class="sp-switch"><input type="checkbox" id="gs-pin"><span>Show it on Today</span></label>
+      <p class="hint" id="gs-error" role="alert"></p>
+      <div class="sheet__actions">
+        <button type="button" class="btn btn--quiet sp-danger" id="gs-delete" hidden>Delete</button>
+        <button type="button" class="btn btn--ghost" id="gs-done" hidden>Mark done</button>
+        <button type="submit" class="btn btn--primary" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Focus: pick what the time is for, then a full-screen timer. -->
+  <dialog class="sheet" id="focus-sheet" aria-labelledby="fs-title">
+    <div class="sheet__panel">
+      <div class="sheet__head"><h2 id="fs-title">Focus on…</h2><button type="button" class="btn btn--quiet btn--sm" data-close aria-label="Close"><span data-icon="x"></span></button></div>
+      <div id="fs-list"></div>
+    </div>
+  </dialog>
+
   <footer data-site-footer></footer>
   <div id="toast-region" aria-live="polite"></div>
 
   <script src="../assets/js/config.js?v=2"></script>
   <script src="../assets/vendor/supabase.js?v=1"></script>
   <script src="../assets/js/db.js?v=2"></script>
-  <script src="../assets/js/routes-core.js?v=2"></script>
-  <script src="../assets/js/global.js?v=38"></script>
+  <script src="../assets/js/routes-core.js?v=3"></script>
+  <script src="../assets/js/global.js?v=39"></script>
   <script src="../assets/js/pwa.js?v=5"></script>
   <!-- KEPT's data layer too: when there is a salary on record, the
        Insights screen prices the hours with it. -->
@@ -162,7 +200,8 @@
   <script src="../assets/js/deck.js?v=1" defer></script>
   <script src="../spent/spent-engine.js?v=2" defer></script>
   <script src="../spent/spent-model.js?v=1" defer></script>
-  <script src="../spent/spent-data.js?v=2" defer></script>
-  <script src="../spent/spent.js?v=2" defer></script>
+  <script src="../spent/spent-goals.js?v=1" defer></script>
+  <script src="../spent/spent-data.js?v=3" defer></script>
+  <script src="../spent/spent.js?v=3" defer></script>
 </body>
 </html>

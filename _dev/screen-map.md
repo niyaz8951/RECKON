@@ -1,4 +1,4 @@
-# RECKON — screen map (v2, phase 1)
+# RECKON — screen map (v2, phases 1–2)
 
 Every screen has one job and at most one primary action, placed in the bottom half of the screen. Checked against the brief's §3 (one accent per app, sentence-case headers, grouped lists, sheets, no blank states).
 
@@ -10,6 +10,9 @@ Every screen has one job and at most one primary action, placed in the bottom ha
 | KEPT EMIs | See loans and what they cost | + Add | |
 | KEPT Insights | Read one finding at a time | — | Tiles push a sub-page with a back bar. |
 | **SPENT** Today | Know how much of today is yours | **Check in** | Usual day assumed and faded until checked in. "Edit day" is the only other link. |
+| SPENT countdowns (on Today) | See how each goal is pacing | ▶ Focus on a goal; + Add a countdown | A pinned goal takes the Today hero; today's hours shrink to one line under it. |
+| SPENT goal sheet | Add or change one countdown | Save | Name, date, optional hours, category, "Show it on Today". Delete has Undo. |
+| SPENT Focus (full screen) | Count one stretch of time | Stop | Screen kept awake; survives reload; Discard adds nothing. Minutes go into the day as "focus". |
 | SPENT check-in (deck) | Confirm the day in ~20 s | Yes / No / Skip (swipe or tap) | ≤ 5 questions; "no" opens a dial (ring + 3 presets); ends on one line. Opens by itself after 19:00 (today) or before noon (an unconfirmed yesterday), once. |
 | SPENT Edit day (pushed) | Correct any category by hand | Done (nav bar) | The 12-row list lives only here. Clear has Undo. |
 | SPENT Week | See seven days side by side | Tap a day → Edit day | Assumed days faded. |

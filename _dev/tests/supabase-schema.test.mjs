@@ -25,6 +25,11 @@ await t('v2 coach, phase 1: spent_days.confirmed_at exists and the migration mar
   eq(cols.length, 1);
   eq((await S.admin("select count(*)::int as n from public.migrations where name = 'schema-2026-10-coach-1'"))[0].n, 1);
 });
+await t('v2 coach, phase 2: goals and focus_sessions exist, are private to their owner, and the marker is recorded', async () => {
+  eq((await S.admin("select count(*)::int as n from public.migrations where name = 'schema-2026-10-coach-2'"))[0].n, 1);
+  const pol = await S.admin("select tablename from pg_policies where schemaname = 'public' and tablename in ('goals', 'focus_sessions') and policyname like '%_own'");
+  eq(pol.length, 2);
+});
 await t('every public table has row-level security on', async () => {
   const rows = await S.admin("select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity");
   eq(rows.length, 0, rows.map((r) => r.relname).join(', '));

@@ -29,7 +29,7 @@
  * a shared device honest even though the shell holds nothing personal.
  */
 
-const VERSION = 'ssd-hub-v11';   // runs under a sub-path (GitHub project site)
+const VERSION = 'ssd-hub-v12';   // runs under a sub-path (GitHub project site)
 
 /* Where the site lives: '/' on its own domain, '/Reckon/' on a GitHub
    project site. The worker sits at the site root, so its own folder is the
@@ -50,12 +50,12 @@ const PRECACHE = [
   '/', '/kept/', '/kept/settings/', '/spent/', '/decided/', '/account/',
   // Exactly as the pages reference them, ?v= included, so the cache key
   // matches. The shell test fails if one of these drifts from the markup.
-  '/assets/css/global.css?v=35',
+  '/assets/css/global.css?v=36',
   '/assets/js/config.js?v=2',
   '/assets/vendor/supabase.js?v=1',
   '/assets/js/db.js?v=2',
-  '/assets/js/routes-core.js?v=2',
-  '/assets/js/global.js?v=38',
+  '/assets/js/routes-core.js?v=3',
+  '/assets/js/global.js?v=39',
   '/assets/js/pwa.js?v=5',
   '/assets/js/deck.js?v=1',
   '/kept/kept.css?v=4',
@@ -65,11 +65,12 @@ const PRECACHE = [
   '/kept/kept-store.js?v=1',
   '/kept/kept-import.js?v=2',
   '/kept/kept.js?v=5',
-  '/spent/spent.css?v=2',
+  '/spent/spent.css?v=3',
   '/spent/spent-engine.js?v=2',
   '/spent/spent-model.js?v=1',
-  '/spent/spent-data.js?v=2',
-  '/spent/spent.js?v=2',
+  '/spent/spent-goals.js?v=1',
+  '/spent/spent-data.js?v=3',
+  '/spent/spent.js?v=3',
   '/decided/decided.css?v=2',
   '/decided/decided-engine.js?v=1',
   '/decided/decided-data.js?v=1',

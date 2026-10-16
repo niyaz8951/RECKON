@@ -279,6 +279,39 @@ create table if not exists public.spent_profile (
   updated_at   text not null default public.now_iso()
 );
 
+-- Countdowns (v2, phase 2): a goal with a date, optionally an hours target
+-- and a SPENT category its time is counted from. Soft-deleted.
+create table if not exists public.goals (
+  id          text primary key,                   -- goal_…
+  user_id     uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  title       text not null,
+  due_on      text not null,                      -- YYYY-MM-DD
+  start_on    text not null,                      -- YYYY-MM-DD, counting starts here
+  target_min  integer,                            -- hours target in minutes; null = a date only
+  cat         text,                               -- SPENT category key; null = Focus time only
+  pinned      integer not null default 0,         -- 1 = takes the Today hero
+  done_at     text,
+  deleted_at  text,
+  created_at  text not null default public.now_iso(),
+  updated_at  text not null default public.now_iso()
+);
+create index if not exists idx_goals_user on public.goals(user_id, due_on);
+
+-- Focus: one timed stretch on a goal or a category. ended_at null = running;
+-- on stop its minutes are added to that day in spent_days (source "focus").
+create table if not exists public.focus_sessions (
+  id          text primary key,                   -- foc_…
+  user_id     uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  goal_id     text,
+  cat         text not null,
+  d           text not null,                      -- YYYY-MM-DD the minutes count towards
+  started_at  text not null,
+  ended_at    text,
+  minutes     integer,
+  created_at  text not null default public.now_iso()
+);
+create index if not exists idx_focus_user on public.focus_sessions(user_id, ended_at);
+
 -- =========================================================== DECIDED
 -- The decision journal: what was decided, what was expected and how sure
 -- the person was; later, what happened. Never hard-deleted (deleted_at).
@@ -325,6 +358,8 @@ alter table public.kept_profile         enable row level security;
 alter table public.spent_days           enable row level security;
 alter table public.spent_profile        enable row level security;
 alter table public.decisions            enable row level security;
+alter table public.goals                enable row level security;
+alter table public.focus_sessions       enable row level security;
 
 -- profiles: your own row, or every row for an admin. Rows are created by
 -- the sign-up trigger and deleted through admin_delete_user, never directly.
@@ -357,7 +392,7 @@ do $$
 declare t text;
 begin
   foreach t in array array['kept_transactions', 'kept_categories', 'kept_emis', 'kept_recurring', 'kept_budgets',
-                           'kept_profile', 'spent_days', 'spent_profile', 'decisions'] loop
+                           'kept_profile', 'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions'] loop
     execute format('drop policy if exists %I on public.%I', t || '_own', t);
     execute format('create policy %I on public.%I for all to authenticated
                       using (user_id = auth.uid() and public.is_active())
@@ -373,3 +408,4 @@ grant usage, select on all sequences in schema public to authenticated;
 insert into public.migrations (name) values ('schema-2026-10-supabase') on conflict (name) do nothing;
 insert into public.migrations (name) values ('schema-2026-10-spent-decided') on conflict (name) do nothing;
 insert into public.migrations (name) values ('schema-2026-10-coach-1') on conflict (name) do nothing;
+insert into public.migrations (name) values ('schema-2026-10-coach-2') on conflict (name) do nothing;

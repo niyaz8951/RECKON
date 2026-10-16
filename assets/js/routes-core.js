@@ -183,8 +183,8 @@
   /* Everything the site expects of the Supabase project. */
   var EXPECTED_TABLES = ['profiles', 'settings', 'audit_log', 'migrations',
     'kept_transactions', 'kept_categories', 'kept_emis', 'kept_recurring', 'kept_budgets', 'kept_profile',
-    'spent_days', 'spent_profile', 'decisions'];
-  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided', 'schema-2026-10-coach-1'];
+    'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions'];
+  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided', 'schema-2026-10-coach-1', 'schema-2026-10-coach-2'];
   route('GET', '/api/admin/health', async function (r) {
     await r.admin();
     var problems = [], counts = {}, migrations = [];

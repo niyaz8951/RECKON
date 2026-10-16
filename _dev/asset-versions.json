@@ -7,9 +7,9 @@
   },
   "/assets/css/global.css": {
     "versions": [
-      "35"
+      "36"
     ],
-    "sha": "c63bf104a9d41e24"
+    "sha": "48e19ea15209c214"
   },
   "/assets/js/config.js": {
     "versions": [
@@ -31,9 +31,9 @@
   },
   "/assets/js/global.js": {
     "versions": [
-      "38"
+      "39"
     ],
-    "sha": "af95709ad6d24885"
+    "sha": "1057eb968e53de5c"
   },
   "/assets/js/pwa.js": {
     "versions": [
@@ -43,9 +43,9 @@
   },
   "/assets/js/routes-core.js": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "d0d9a95f9b17012f"
+    "sha": "90abcf61f471aca1"
   },
   "/assets/vendor/supabase.js": {
     "versions": [
@@ -127,15 +127,21 @@
   },
   "/spent/spent-data.js": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "87b82c8d61b7915c"
+    "sha": "35c5df366488c062"
   },
   "/spent/spent-engine.js": {
     "versions": [
       "2"
     ],
     "sha": "399745afd8364ee0"
+  },
+  "/spent/spent-goals.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "bd55034a24e881dd"
   },
   "/spent/spent-model.js": {
     "versions": [
@@ -145,14 +151,14 @@
   },
   "/spent/spent.css": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "86f0e14526536b19"
+    "sha": "6fa8ae20d98b8900"
   },
   "/spent/spent.js": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "5fdd305e00a1841f"
+    "sha": "45e7d78fdef948af"
   }
 }

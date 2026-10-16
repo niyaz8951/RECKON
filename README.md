@@ -13,7 +13,7 @@ no AI.
 | App | Where | What it is |
 |---|---|---|
 | **KEPT** | `/kept/` | Household money review: ledger, EMIs, recurring, budgets, the path to a keep-rate target, and an analysis worked out in code from your own numbers. Excel import/export. |
-| **SPENT** | `/spent/` | Where your time goes, without a timesheet. It learns your usual day per weekday (`spent/spent-model.js`, plain statistics) and assumes it; an evening check-in of at most five swipe questions corrects it — a usual day is one "yes". Committed, upkeep, **yours by choice**, drift; keep-rate for time, the week, a daily lesson, hours priced with KEPT's income. The full list of categories is behind "Edit day". |
+| **SPENT** | `/spent/` | Where your time goes, without a timesheet. It learns your usual day per weekday (`spent/spent-model.js`, plain statistics) and assumes it; an evening check-in of at most five swipe questions corrects it — a usual day is one "yes". Committed, upkeep, **yours by choice**, drift; keep-rate for time, the week, a daily lesson, hours priced with KEPT's income. The full list of categories is behind "Edit day". Countdowns (a goal with a date and an optional hours target, with the pace it needs) and a Focus timer that writes measured minutes into the day. |
 | **DECIDED** | `/decided/` | The decision journal. Log what you decided, what you expect and how sure you are; the app asks you back on the review date. Over time: calibration (does "80% sure" mean 80% for you?), Brier score, by-area accuracy, your own lessons. |
 
 First time? Follow **SETUP.md**.

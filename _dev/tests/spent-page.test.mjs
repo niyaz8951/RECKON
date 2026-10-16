@@ -34,13 +34,45 @@ function history() {
   return out;
 }
 
-async function boot({ hour = 10, seen = true, days = history() } = {}) {
-  const db = { days: Object.fromEntries(days.map((x) => [x.d, x])), profile: E.profileOf({}), puts: [] };
+async function boot({ hour = 10, seen = true, days = history(), goals = [], focus = [], wake = true } = {}) {
+  const db = { days: Object.fromEntries(days.map((x) => [x.d, x])), profile: E.profileOf({}), puts: [], goals: goals.map((g) => ({ ...g })), focus: focus.map((f) => ({ ...f })) };
+  let win = null;
+  const nowIso = () => new win.Date().toISOString();
   const json = (body, status) => ({ ok: (status || 200) < 400, status: status || 200, json: async () => body });
   async function fakeFetch(url, opts) {
     const u = new URL(url, 'https://reckon.test'), m = (opts && opts.method) || 'GET', b = opts && opts.body ? JSON.parse(opts.body) : {};
     if (u.pathname === '/api/auth/me') return json({ user: { id: 'u1', email: 't@example.com', name: 'Tester', role: 'user', status: 'active' } });
-    if (u.pathname === '/api/spent/bootstrap') return json({ profile: db.profile, days: Object.values(db.days), today: TODAY });
+    if (u.pathname === '/api/spent/bootstrap') return json({ profile: db.profile, days: Object.values(db.days), today: TODAY, goals: db.goals.filter((g) => !g.deleted_at),
+      focus: { active: db.focus.find((f) => !f.ended_at) || null, recent: db.focus.filter((f) => f.ended_at) } });
+    if (u.pathname === '/api/spent/goals' && m === 'POST') {
+      if (!b.title) return json({ error: 'Give the goal a name.' }, 400);
+      const g = { id: 'goal_' + (db.goals.length + 1), title: b.title, due_on: b.due_on, start_on: TODAY, target_min: b.target_min, cat: b.cat, pinned: !!b.pinned, done_at: null, deleted_at: null };
+      if (g.pinned) db.goals.forEach((x) => { x.pinned = false; });
+      db.goals.push(g); return json({ ok: true, goal: g });
+    }
+    const gm = u.pathname.match(/^\/api\/spent\/goals\/(.+)$/);
+    if (gm) {
+      const g = db.goals.find((x) => x.id === gm[1]);
+      if (m === 'DELETE') { g.deleted_at = 'now'; g.pinned = false; return json({ ok: true }); }
+      if (b.restore) g.deleted_at = null;
+      if (b.done !== undefined) g.done_at = b.done ? 'now' : null;
+      for (const k of ['title', 'due_on', 'target_min', 'cat', 'pinned']) if (b[k] !== undefined) g[k] = b[k];
+      return json({ ok: true, goal: g });
+    }
+    if (u.pathname === '/api/spent/focus/start') {
+      const run = db.focus.find((f) => !f.ended_at); if (run) return json({ ok: true, session: run, already: true });
+      const g = db.goals.find((x) => x.id === b.goal_id);
+      const f = { id: 'foc_' + (db.focus.length + 1), goal_id: b.goal_id || null, cat: (g && g.cat) || b.cat, d: TODAY, started_at: nowIso(), ended_at: null, minutes: null };
+      db.focus.push(f); return json({ ok: true, session: f });
+    }
+    if (u.pathname === '/api/spent/focus/stop') {
+      const f = db.focus.find((x) => x.id === b.id);
+      if (b.discard) { db.focus = db.focus.filter((x) => x !== f); return json({ ok: true, session: null, day: null, discarded: true }); }
+      f.ended_at = nowIso(); f.minutes = Math.round((Date.parse(f.ended_at) - Date.parse(f.started_at)) / 60000);
+      const prev = db.days[f.d] || { d: f.d, blocks: {}, src: {}, confirmed_at: null };
+      const row = { ...prev, blocks: { ...prev.blocks, [f.cat]: (prev.blocks[f.cat] || 0) + f.minutes }, src: prev.src ? { ...prev.src, [f.cat]: 'focus' } : null };
+      db.days[f.d] = row; return json({ ok: true, session: f, day: row });
+    }
     if (u.pathname === '/api/spent/day' && m === 'PUT') {
       db.puts.push(b);
       const prev = db.days[b.d];
@@ -55,7 +87,8 @@ async function boot({ hour = 10, seen = true, days = history() } = {}) {
   vc.on('jsdomError', (e) => { if (!/Not implemented/.test(String(e && e.message))) errors.push(String(e && e.message)); });
   vc.on('error', (m) => errors.push(String(m)));
   const dom = new JSDOM(HTML, { url: 'https://reckon.test/spent/', runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole: vc });
-  const w = dom.window;
+  const w = dom.window; win = w;
+  if (wake) Object.defineProperty(w.navigator, 'wakeLock', { configurable: true, value: { request: async (kind) => { w.__wake = (w.__wake || 0) + 1; w.__wakeKind = kind; return { release: async () => { w.__wake--; }, addEventListener() {} }; } } });
   // Pin the clock: today at `hour`:05 local.
   w.eval(`(function(){var R=Date;var b=new R('${TODAY}T00:00:00');b.setHours(${hour},5,0,0);var off=b-R.now();function D(...a){return a.length?new R(...a):new R(R.now()+off)};D.now=()=>R.now()+off;D.parse=R.parse;D.UTC=R.UTC;D.prototype=R.prototype;window.Date=D;})();`);
   w.matchMedia = (q) => ({ matches: /reduce/.test(q), addEventListener() {}, removeEventListener() {} });
@@ -64,7 +97,7 @@ async function boot({ hour = 10, seen = true, days = history() } = {}) {
   w.scrollTo = () => {};
   w.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
   w.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
-  for (const f of ['assets/js/global.js', 'assets/js/deck.js', 'spent/spent-engine.js', 'spent/spent-model.js', 'spent/spent.js']) w.eval(readFileSync(resolve(ROOT, f), 'utf8'));
+  for (const f of ['assets/js/global.js', 'assets/js/deck.js', 'spent/spent-engine.js', 'spent/spent-model.js', 'spent/spent-goals.js', 'spent/spent.js']) w.eval(readFileSync(resolve(ROOT, f), 'utf8'));
   const ready = new Promise((r) => w.document.addEventListener('spent:ready', r, { once: true }));
   await Promise.race([ready, tick(4000).then(() => { throw new Error('spent:ready never fired'); })]);
   await tick(20);
@@ -227,6 +260,82 @@ await t('a brand-new person: no record, no deck in the morning, Insights says wh
   eq(P.$('#checkin').textContent, 'Check in');
   P.$('#sp-bar [data-screen="insights"]').click(); await tick(20);
   ok(/Check in tonight/.test(P.$('#ins-wrap').textContent));
+});
+
+await t('countdowns: an empty list says what one is; adding one through the sheet puts it on Today', async () => {
+  const P = await boot({ hour: 15 });
+  ok(/goal with a date/.test(P.$('#goals-note').textContent));
+  P.$('#goal-add').click(); await tick(20);
+  ok(P.$('#goal-sheet').hasAttribute('open'));
+  eq(P.$('#gs-pin').checked, true, 'the first goal goes on Today by default');
+  eq(P.$('#gs-cat').value, 'learning');
+  P.$('#gs-name').value = 'Finish the Python course'; P.$('#gs-hours').value = '40'; P.$('#gs-due').value = '2026-11-14';
+  P.$('#goal-form').dispatchEvent(new P.w.Event('submit', { cancelable: true })); await tick(50);
+  ok(!P.$('#goal-sheet').hasAttribute('open'));
+  eq(P.db.goals[0].target_min, 2400); eq(P.db.goals[0].cat, 'learning');
+  eq(P.$$('#goals-list .sp-goal').length, 1);
+  ok(P.$('#today-hero .sp-hero--goal'), 'pinned goal takes the hero');
+  eq(P.$('#today-hero .kp-hero__big').textContent, '30 days left');
+  ok(/Yours today/.test(P.$('#today-hero .sp-hero__yours').textContent), 'today\'s hours stay, as one line');
+  eq(P.errors.length, 0, P.errors.join());
+});
+
+await t('deleting a countdown has Undo', async () => {
+  const P = await boot({ hour: 15, goals: [{ id: 'g1', title: 'Trip', due_on: '2026-10-30', start_on: TODAY, target_min: null, cat: null, pinned: false }] });
+  P.$('[data-goal-edit="g1"]').click(); await tick(20);
+  P.$('#gs-delete').click(); await tick(50);
+  eq(P.$$('#goals-list .sp-goal').length, 0);
+  P.$('.toast__undo').click(); await tick(50);
+  eq(P.$$('#goals-list .sp-goal').length, 1, 'back');
+});
+
+await t('Focus: start from a goal, full-screen timer with the screen kept awake; a reload resumes it; Stop adds the minutes', async () => {
+  const goals = [{ id: 'g1', title: 'Python course', due_on: '2026-11-14', start_on: '2026-09-20', target_min: 2400, cat: 'learning', pinned: true }];
+  const P = await boot({ hour: 15, goals });
+  P.$('[data-goal-focus="g1"]').click(); await tick(60);
+  ok(P.$('#focus-screen'), 'timer on screen'); eq(P.$('#focus-what').textContent, 'Python course');
+  ok(/Learning/.test(P.$('.focus__eyebrow').textContent));
+  eq(P.w.__wake, 1, 'screen wake lock held'); eq(P.w.__wakeKind, 'screen');
+  // Forty minutes later the app is opened again: same server state, new page.
+  const run = P.db.focus[0]; run.started_at = new Date(Date.parse(run.started_at) - 40 * 60000).toISOString();
+  const Q = await boot({ hour: 15, goals, focus: P.db.focus, days: Object.values(P.db.days) });
+  ok(Q.$('#focus-screen'), 'resumed after reload');
+  ok(/^(39:5\d|40:0\d)$/.test(Q.$('#focus-clock').textContent), Q.$('#focus-clock').textContent);
+  ok(!Q.$('.deck'), 'no check-in on top of a running timer');
+  Q.$('#focus-stop').click(); await tick(80);
+  ok(!Q.$('#focus-screen')); eq(Q.w.__wake, 0, 'lock released');
+  eq(Q.w.SPENT.state.days[TODAY].blocks.learning, 40);
+  ok(/40m of learning added to today/.test(Q.$('#toast-region').textContent), Q.$('#toast-region').textContent);
+  ok(!Q.$$('#today-bar .sp-bar__seg--mine').every((x) => x.classList.contains('is-assumed')), 'focus minutes are solid, not assumed');
+  ok(Q.$$('#today-bar .is-assumed').length > 0, 'the rest of the day is still the usual');
+});
+
+await t('Focus without a wake lock still runs; a category is asked for when the goal has none; discard adds nothing', async () => {
+  const P = await boot({ hour: 15, wake: false, goals: [{ id: 'g2', title: 'Book draft', due_on: '2026-12-01', start_on: TODAY, target_min: 600, cat: null }] });
+  P.$('#focus-open').click(); await tick(20);
+  ok(P.$('#focus-sheet').hasAttribute('open'));
+  P.$('[data-focus-goal="g2"]').click(); await tick(20);
+  ok(/no category/.test(P.$('#fs-list').textContent), 'asks which part of the day it is');
+  P.$('[data-focus-cat="making"]').click(); await tick(60);
+  ok(P.$('#focus-screen')); eq(P.db.focus[0].cat, 'making'); eq(P.db.focus[0].goal_id, 'g2');
+  P.$('#focus-discard').click(); await tick(60);
+  ok(!P.$('#focus-screen')); eq(P.db.focus.length, 0);
+  ok(/Discarded/.test(P.$('#toast-region').textContent));
+});
+
+await t('check-in: a countdown that is behind gets its own question, even after "yes, usual"', async () => {
+  const goals = [{ id: 'g1', title: 'Python course', due_on: '2026-11-14', start_on: '2026-09-20', target_min: 2400, cat: 'learning', pinned: false }];
+  const P = await boot({ hour: 21, goals });
+  P.$('#checkin').click(); await tick(150);
+  P.$('[data-deck="yes"]').click(); await tick(200);
+  eq(P.$('.deck-card__title').textContent, 'Put time into Python course today?');
+  ok(/behind/.test(P.$('.deck-card__reason').textContent));
+  P.$('[data-deck="yes"]').click(); await tick(200);
+  ok(P.$('.deck-card--dial'), 'yes → how much');
+  P.$('[data-deck="set"]').click(); await tick(200);
+  ok(P.$('.deck-card--info'));
+  const put = P.db.puts.at(-1);
+  ok(put.blocks.learning > 0, 'learning recorded: ' + put.blocks.learning); eq(put.src.learning, 'confirmed');
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

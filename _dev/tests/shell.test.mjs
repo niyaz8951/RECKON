@@ -132,7 +132,7 @@ await t('service worker: every precached asset exists, and the version was bumpe
     // precached copy is a cache key nobody ever requests.
     if (u.includes('?v=')) ok(refs.has(u), 'precache entry not referenced by any page: ' + u);
   }
-  ok(/const VERSION = 'ssd-hub-v11'/.test(sw));
+  ok(/const VERSION = 'ssd-hub-v12'/.test(sw));
 });
 await t('every page sets the theme before first paint, with the same rule', async () => {
   const { readdirSync, statSync } = await import('node:fs');

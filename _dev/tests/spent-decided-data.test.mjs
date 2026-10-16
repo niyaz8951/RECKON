@@ -76,6 +76,77 @@ await t('spent v2: a project without the new column gets a plain instruction, no
     eq(r.status, 503); ok(/run supabase\/schema\.sql/.test(r.body.error), r.body.error);
   } finally { await S.admin('alter table public.spent_days rename column confirmed_at_x to confirmed_at'); }
 });
+await t('countdowns: create, validate, one pinned at a time, soft delete and restore, kept to their owner', async () => {
+  let r = await call('/api/spent/goals', 'POST', { title: '  Python course ', due_on: SE.addDays(today, 30), target_min: 2400, cat: 'learning', pinned: true });
+  eq(r.status, 200, r.body.error); const a = r.body.goal;
+  eq(a.title, 'Python course'); eq(a.start_on, today); eq(a.target_min, 2400); eq(a.pinned, true);
+  r = await call('/api/spent/goals', 'POST', { title: 'Trip', due_on: SE.addDays(today, 10), pinned: true });
+  eq(r.body.goal.target_min, null); eq(r.body.goal.cat, null);
+  const b = r.body.goal;
+  let boot = await call('/api/spent/bootstrap', 'GET');
+  eq(boot.body.goals.length, 2); eq(boot.body.goals.filter((g) => g.pinned).map((g) => g.id).join(), b.id, 'pinning one unpins the other');
+  eq((await call('/api/spent/goals', 'POST', { title: '', due_on: today })).status, 400);
+  eq((await call('/api/spent/goals', 'POST', { title: 'x', due_on: 'soon' })).status, 400);
+  eq((await call('/api/spent/goals', 'POST', { title: 'x', due_on: today, target_min: -5 })).status, 400);
+  eq((await call('/api/spent/goals', 'POST', { title: 'x', due_on: today, cat: 'nope' })).status, 400);
+  r = await call('/api/spent/goals/' + a.id, 'PUT', { done: true, title: 'Python, part 1' });
+  ok(r.body.goal.done_at); eq(r.body.goal.title, 'Python, part 1'); eq(r.body.goal.due_on, a.due_on, 'a partial update keeps the rest');
+  eq((await call('/api/spent/goals/' + b.id, 'DELETE')).status, 200);
+  eq((await call('/api/spent/bootstrap', 'GET')).body.goals.length, 1, 'deleted goals leave the list');
+  eq((await call('/api/spent/goals/' + b.id, 'PUT', { title: 'x' })).status, 404, 'a deleted goal cannot be edited');
+  r = await call('/api/spent/goals/' + b.id, 'PUT', { restore: true });
+  eq(r.status, 200); eq((await call('/api/spent/bootstrap', 'GET')).body.goals.length, 2, 'Undo brings it back');
+  as(owner); await S.admin("update public.profiles set status = 'active' where id = $1", [owner]);
+  eq((await call('/api/spent/goals/' + a.id, 'PUT', { title: 'mine now' })).status, 404, 'someone else\'s goal is invisible');
+  eq((await call('/api/spent/bootstrap', 'GET')).body.goals.length, 0);
+  as(uid);
+});
+await t('focus: one session at a time; stopping adds its minutes to the day as focus; discard adds nothing', async () => {
+  const goals = (await call('/api/spent/bootstrap', 'GET')).body.goals, course = goals.find((g) => g.cat === 'learning'), trip = goals.find((g) => !g.cat);
+  eq((await call('/api/spent/focus/start', 'POST', { goal_id: trip.id })).status, 400, 'a goal without a category needs one');
+  let r = await call('/api/spent/focus/start', 'POST', { goal_id: course.id });
+  eq(r.status, 200, r.body.error); const s1 = r.body.session;
+  eq(s1.cat, 'learning'); eq(s1.d, today); eq(s1.ended_at, null);
+  r = await call('/api/spent/focus/start', 'POST', { cat: 'exercise' });
+  eq(r.body.already, true); eq(r.body.session.id, s1.id, 'the running one comes back');
+  eq((await call('/api/spent/bootstrap', 'GET')).body.focus.active.id, s1.id, 'bootstrap knows it is running (reload resumes)');
+  await S.admin('update public.focus_sessions set started_at = $1 where id = $2', [new Date(Date.now() - 40 * 60000).toISOString(), s1.id]);
+  // Today already has a confirmed sleep; learning becomes focus.
+  await call('/api/spent/day', 'PUT', { d: today, blocks: { sleep: 420 }, src: { sleep: 'confirmed' } });
+  r = await call('/api/spent/focus/stop', 'POST', { id: s1.id });
+  eq(r.status, 200, r.body.error); eq(r.body.session.minutes, 40);
+  eq(r.body.day.blocks.learning, 40); eq(r.body.day.src.learning, 'focus'); eq(r.body.day.blocks.sleep, 420);
+  eq(SE.srcOf(r.body.day, 'learning'), 'focus');
+  r = await call('/api/spent/focus/stop', 'POST', { id: s1.id });
+  eq(r.body.day, null, 'stopping twice adds nothing twice');
+  const boot = await call('/api/spent/bootstrap', 'GET');
+  eq(boot.body.focus.active, null); eq(boot.body.focus.recent.length, 1);
+  // A forgotten timer counts ten hours at most; a discarded one counts nothing.
+  const s2 = (await call('/api/spent/focus/start', 'POST', { cat: 'making' })).body.session;
+  await S.admin('update public.focus_sessions set started_at = $1, d = $3 where id = $2', [new Date(Date.now() - 20 * 3600000).toISOString(), s2.id, SE.addDays(today, -5)]);
+  r = await call('/api/spent/focus/stop', 'POST', { id: s2.id });
+  eq(r.body.session.minutes, 600); eq(r.body.day.d, SE.addDays(today, -5), 'counted on the day it started');
+  const s3 = (await call('/api/spent/focus/start', 'POST', { cat: 'making' })).body.session;
+  r = await call('/api/spent/focus/stop', 'POST', { id: s3.id, discard: true });
+  eq(r.body.discarded, true);
+  eq((await S.admin('select count(*)::int as n from public.focus_sessions where id = $1', [s3.id]))[0].n, 0);
+});
+await t('focus never takes a day past 24 hours: assumed minutes make room first', async () => {
+  const d = SE.addDays(today, -6);
+  await call('/api/spent/day', 'PUT', { d, blocks: { sleep: 480, work: 600, screen: 300 }, src: { sleep: 'confirmed', work: 'confirmed', screen: 'assumed' } });
+  const s = (await call('/api/spent/focus/start', 'POST', { cat: 'learning' })).body.session;
+  await S.admin('update public.focus_sessions set started_at = $1, d = $3 where id = $2', [new Date(Date.now() - 120 * 60000).toISOString(), s.id, d]);
+  const r = await call('/api/spent/focus/stop', 'POST', { id: s.id });
+  eq(SE.total(r.body.day.blocks), 1440, 'exactly full'); eq(r.body.day.blocks.learning, 120); eq(r.body.day.blocks.work, 600);
+  ok(r.body.day.blocks.screen < 300, 'assumed screen time shrank: ' + r.body.day.blocks.screen);
+});
+await t('without the phase-2 tables SPENT still boots and says what to run', async () => {
+  await S.admin('alter table public.goals rename to goals_x');
+  try {
+    const r = await call('/api/spent/bootstrap', 'GET');
+    eq(r.status, 200, r.body.error); eq(r.body.needsSchema, 'goals'); eq(r.body.goals.length, 0); ok(r.body.days.length > 0);
+  } finally { await S.admin('alter table public.goals_x rename to goals'); }
+});
 await t('spent: profile edits are validated and kept', async () => {
   let r = await call('/api/spent/profile', 'PUT', { target_bp: 2500, weekend: [0, 6], rules: { weekday: { sleep: 450, work: 600, nope: 10 }, weekend: { sleep: 500 } } });
   eq(r.status, 200, r.body.error); eq(r.body.profile.target_bp, 2500); eq(r.body.profile.weekend.join(','), '0,6'); eq(r.body.profile.rules.weekday.work, 600); eq(r.body.profile.rules.weekday.nope, undefined);
