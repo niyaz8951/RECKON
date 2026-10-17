@@ -10,11 +10,13 @@
      POST /api/auth/logout
      POST /api/auth/signup        new accounts wait for approval
      POST /api/auth/password      change password; signs out everywhere
-     GET  /api/auth/profile       PUT { name?, avatar? }
+     GET  /api/auth/profile       PUT { name?, avatar?, ai_on? }
      /api/admin/users[/:id]       list · PATCH { status?, role?, name?, notes? } · DELETE
      /api/admin/settings          GET · PATCH { signup_mode?, maintenance?, announcement? }
      GET  /api/admin/audit
-     GET  /api/admin/health       is the Supabase project set up as the site expects? */
+     GET  /api/admin/health       is the Supabase project set up as the site expects?
+     GET  /api/cards/feedback?app=  the last 120 days of card feedback (CardEngine)
+     POST /api/cards/feedback       { app, type, card_key, verdict, d } */
 (function (root) {
   'use strict';
   var D = root.TNData, db = D.db, auth = D.auth, route = D.route, fail = D.fail;
@@ -107,6 +109,7 @@
       if (!name) throw fail('Your name cannot be empty.');
       patch.name = name;
     }
+    if (b.ai_on !== undefined) patch.ai_on = b.ai_on ? 1 : 0;
     if (b.avatar !== undefined) {
       if (b.avatar === null || b.avatar === '') patch.avatar = null;
       else {
@@ -183,8 +186,8 @@
   /* Everything the site expects of the Supabase project. */
   var EXPECTED_TABLES = ['profiles', 'settings', 'audit_log', 'migrations',
     'kept_transactions', 'kept_categories', 'kept_emis', 'kept_recurring', 'kept_budgets', 'kept_profile',
-    'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions'];
-  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided', 'schema-2026-10-coach-1', 'schema-2026-10-coach-2'];
+    'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions', 'kept_patterns', 'card_feedback', 'ai_usage', 'ai_cache'];
+  var EXPECTED_MIGRATIONS = ['schema-2026-10-supabase', 'schema-2026-10-spent-decided', 'schema-2026-10-coach-1', 'schema-2026-10-coach-2', 'schema-2026-10-coach-3'];
   route('GET', '/api/admin/health', async function (r) {
     await r.admin();
     var problems = [], counts = {}, migrations = [];
@@ -196,6 +199,8 @@
     // Columns added by later migrations, which a count cannot see.
     try { await db.select('spent_days', { columns: 'id,confirmed_at', limit: 1 }); }
     catch (e) { if (counts.spent_days != null) problems.push('column missing: spent_days.confirmed_at — run supabase/schema.sql'); }
+    try { await db.select('profiles', { columns: 'id,ai_on', limit: 1 }); }
+    catch (e) { problems.push('column missing: profiles.ai_on — run supabase/schema.sql'); }
     try {
       migrations = await db.select('migrations', { order: [['applied_at', 'asc']] });
       var have = migrations.map(function (m) { return m.name; });
@@ -204,6 +209,27 @@
     return { ok: problems.length === 0, problems: problems, counts: counts, migrations: migrations,
       bindings: { DB: true }, checked_at: D.now(),
       note: 'Counts for personal tables are your own rows: row-level security hides everyone else\'s, even from an admin.' };
+  });
+
+  /* -------------------------------------------------------------- cards */
+  var APPS_ = ['kept', 'spent', 'decided', 'hub'], VERDICTS = ['shown', 'useful', 'not', 'acted'];
+  function localDay(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function minusDays(s, n) { var d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() - n); return localDay(d); }
+  route('GET', '/api/cards/feedback', async function (r) {
+    var u = await r.me(), app = r.query.get('app'), where = { user_id: u.id, d: { gte: minusDays(localDay(), 120) } };
+    if (app) where.app = app;
+    try { return { feedback: await db.select('card_feedback', { columns: 'app,type,card_key,verdict,d', where: where, order: [['created_at', 'asc']] }) }; }
+    catch (e) { return { feedback: [], needsSchema: 'cards' }; }
+  });
+  route('POST', '/api/cards/feedback', async function (r) {
+    var u = await r.me(), b = r.body;
+    var app = String(b.app || ''), verdict = String(b.verdict || ''), type = String(b.type || '').slice(0, 40), key = String(b.card_key || '').slice(0, 200);
+    var d = /^\d{4}-\d{2}-\d{2}$/.test(String(b.d || '')) ? b.d : localDay();
+    if (APPS_.indexOf(app) < 0 || VERDICTS.indexOf(verdict) < 0 || !type || !key) throw fail('Bad card feedback.');
+    // "shown" once per card per day is enough.
+    if (verdict === 'shown' && await db.first('card_feedback', { where: { user_id: u.id, type: type, card_key: key, d: d, verdict: 'shown' } })) return { ok: true, already: true };
+    var row = (await db.insert('card_feedback', { id: D.id('cfb'), user_id: u.id, app: app, type: type, card_key: key, verdict: verdict, d: d }))[0];
+    return { ok: true, feedback: { app: row.app, type: row.type, card_key: row.card_key, verdict: row.verdict, d: row.d } };
   });
 
   root.TNRoutesCore = { EXPECTED_TABLES: EXPECTED_TABLES, EXPECTED_MIGRATIONS: EXPECTED_MIGRATIONS };

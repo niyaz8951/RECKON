@@ -8,7 +8,7 @@
   var E = window.DecidedEngine;
   var $ = function (id) { return document.getElementById(id); };
   var esc = TN.esc, pct = E.pct;
-  var S = { list: [], M: null, screen: 'open', edit: null, review: null, form: { domain: 'life', stakes: 'medium', reversible: 1, preset: '1m' } };
+  var S = { deck: null, list: [], M: null, screen: 'open', edit: null, review: null, form: { domain: 'life', stakes: 'medium', reversible: 1, preset: '1m' } };
 
   function today() { return E.iso(new Date()); }
   function api(path, opts) { return TN.api(path, opts); }
@@ -23,6 +23,14 @@
     if (n === 0) return 'today'; if (n === 1) return 'tomorrow'; if (n === -1) return 'yesterday';
     if (n < 0) return Math.abs(n) + ' days overdue'; if (n < 30) return 'in ' + n + ' days'; if (n < 365) return 'in ' + Math.round(n / 30) + ' months';
     return 'in ' + (Math.round(n / 365 * 10) / 10) + ' years';
+  }
+  function ring(p, o) {
+    o = o || {};
+    var sz = o.size || 104, sw = o.stroke || 9, r = 50 - sw / 2, C = 2 * Math.PI * r, off = C * (1 - Math.max(0, Math.min(1, p)));
+    return '<div class="kp-ring' + (o.cls ? ' kp-ring--' + o.cls : '') + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      '<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="kp-ring__track" cx="50" cy="50" r="' + r + '" fill="none" stroke-width="' + sw + '"/>' +
+      '<circle class="kp-ring__fill" cx="50" cy="50" r="' + r + '" fill="none" stroke-width="' + sw + '" stroke-linecap="round" stroke-dasharray="' + C.toFixed(2) +
+      '" stroke-dashoffset="' + off.toFixed(2) + '" transform="rotate(-90 50 50)"/></svg><div class="kp-ring__c">' + (o.center || '') + '</div></div>';
   }
   function rebuild() { S.M = E.build(S.list, today()); }
 
@@ -60,18 +68,34 @@
         '<p class="dc-card__verdict"><span class="kp-pill kp-pill--' + (d.as_expected ? 'ok' : 'bad') + '">' + (d.as_expected ? 'As expected' : 'Not as expected') + '</span> ' + (d.outcome_score && d.outcome_score !== 3 ? '<span class="kp-pill kp-pill--' + (d.outcome_score >= 4 ? 'ok' : 'bad') + '">' + esc(E.SCORE_LABEL[d.outcome_score]) + ' than hoped</span>' : '') + '</p>' +
         (d.lesson ? '<p class="dc-card__lesson">“' + esc(d.lesson) + '”</p>' : '') +
         '<div class="dc-card__acts"><button type="button" class="btn btn--quiet btn--sm" data-act="reopen">Reopen</button></div>'
-      : '<div class="dc-card__acts"><span class="dc-card__when' + (due ? ' is-due' : '') + '">' + (due ? 'Review ' + rel(d.review_on) : 'Review ' + rel(d.review_on) + ' · ' + dateShort(d.review_on)) + '</span>' +
+      : countLine(d) + '<div class="dc-card__acts"><span class="dc-card__when">' + (due ? '' : 'Review ' + dateShort(d.review_on)) + '</span>' +
         '<button type="button" class="btn btn--quiet btn--sm" data-act="edit">Edit</button>' +
         '<button type="button" class="btn ' + (due ? 'btn--primary' : 'btn--ghost') + ' btn--sm" data-act="review">' + (due ? 'Look back now' : 'Review early') + '</button></div>') +
       '</article>';
   }
+  /* Days pending, as a line and a track: how much of the wait has gone. */
+  function countLine(d) {
+    var c = E.countdown(d, today());
+    return '<div class="dc-count dc-count--' + c.state + '"><p class="dc-count__head"><b>' + esc(c.head) + '</b><span>' + esc(c.sub) + '</span></p>' +
+      '<span class="dc-count__track" role="progressbar" aria-label="Wait so far" aria-valuemin="0" aria-valuemax="' + c.total + '" aria-valuenow="' + c.gone + '"><i style="width:' + Math.round(c.share * 100) + '%"></i></span></div>';
+  }
+  /* Nothing due: the nearest look-back takes the hero as a countdown. */
+  function nextHero(M) {
+    var d = M.upcoming[0], c = E.countdown(d, today());
+    return '<div class="panel kp-hero dc-hero" data-id="' + esc(d.id) + '"><div class="kp-hero__top"><div>' +
+      '<p class="eyebrow">Next look back · ' + M.open.length + ' open</p>' +
+      '<div class="kp-hero__big">' + (c.left === 1 ? '1 day' : c.left + ' days') + '</div>' +
+      '<div class="kp-hero__sub"><b>' + esc(d.title) + '</b><br>' + esc(c.sub) + ' · review ' + dateShort(d.review_on) + '</div></div>' +
+      ring(c.share, { size: 104, center: '<b>' + Math.round(c.share * 100) + '%</b><span>of the<br>wait gone</span>' }) + '</div>' +
+      '<p class="muted" style="margin-top:var(--space-2)">' + (M.last30 ? M.last30 + ' decision' + (M.last30 === 1 ? '' : 's') + ' logged in the last 30 days.' : 'Nothing logged in the last 30 days — the small ones count too.') + '</p></div>';
+  }
   function wireCards(root) {
     root.addEventListener('click', function (ev) {
       var b = ev.target.closest('[data-act]'); if (!b) return;
-      var id = b.closest('.dc-card').getAttribute('data-id'), d = S.list.filter(function (x) { return x.id === id; })[0];
+      var id = b.closest('[data-id]').getAttribute('data-id'), d = S.list.filter(function (x) { return x.id === id; })[0];
       if (!d) return;
       var act = b.getAttribute('data-act');
-      if (act === 'edit') openEdit(d); else if (act === 'review') openReview(d); else if (act === 'reopen') reopen(d);
+      if (act === 'edit') openEdit(d); else if (act === 'review') { if (d.review_on <= today()) openReviewDeck([d]); else openReview(d); } else if (act === 'reopen') reopen(d);
     });
   }
 
@@ -84,11 +108,86 @@
         '<div class="kp-start"><button type="button" id="ow-add"><b>Log a decision</b><span>Twenty seconds. The review date does the rest.</span></button></div></div>';
       box.innerHTML = h; $('ow-add').addEventListener('click', function () { openEdit(null); }); return;
     }
-    if (M.due.length) h += '<div class="panel kp-hero kp-hero--warn"><p class="eyebrow">Due for review</p><h2>' + M.due.length + ' decision' + (M.due.length === 1 ? '' : 's') + ' reached ' + (M.due.length === 1 ? 'its' : 'their') + ' review date.</h2><p class="muted" style="margin-top:var(--space-2)">A review takes a minute and is the whole point: the score only exists if you look back.</p></div>' +
+    if (M.due.length) h += '<div class="panel kp-hero kp-hero--warn"><p class="eyebrow">Due for review</p><h2>' + M.due.length + ' decision' + (M.due.length === 1 ? '' : 's') + ' reached ' + (M.due.length === 1 ? 'its' : 'their') + ' review date.</h2><p class="muted" style="margin-top:var(--space-2)">A few swipes each. The score only exists if you look back.</p>' +
+      '<button type="button" class="btn btn--primary btn--lg btn--block dc-lookback" id="dc-lookback">Look back now</button></div>' +
       '<div class="dc-list">' + M.due.map(function (d) { return card(d, 'open'); }).join('') + '</div>';
-    else h += '<div class="panel kp-hero"><p class="eyebrow">' + M.open.length + ' open · next review ' + (M.upcoming[0] ? rel(M.upcoming[0].review_on) : '—') + '</p><h2>Nothing is due today.</h2><p class="muted" style="margin-top:var(--space-2)">' + (M.last30 ? M.last30 + ' decision' + (M.last30 === 1 ? '' : 's') + ' logged in the last 30 days.' : 'Nothing logged in the last 30 days — the small ones count too.') + '</p></div>';
+    else if (M.upcoming.length) h += nextHero(M);
     if (M.upcoming.length) h += '<div class="panel"><div class="panel__head"><h2>Waiting</h2><span class="muted">soonest first</span></div><div class="dc-list">' + M.upcoming.map(function (d) { return card(d, 'open'); }).join('') + '</div></div>';
     box.innerHTML = h; fillIcons(box);
+    if ($('dc-lookback')) $('dc-lookback').addEventListener('click', function () { openReviewDeck(S.M.due); });
+  }
+  /* -------------------------------------------------------- review deck
+     Due decisions as cards (v2 phase 3): as expected? → how it compared
+     (a 1–5 dial) → what happened → the lesson, optional. At most three a
+     sitting; the rest wait for next time. Skip on the first card leaves
+     that decision due. Each one is saved the moment its last card is
+     answered. With AI on, the lesson card offers a suggestion — it fills
+     the box, the person decides. */
+  var DECK_MAX = 3;
+  function openReviewDeck(list) {
+    if (S.deck || !list || !list.length) return;
+    var batch = list.slice(0, DECK_MAX), st = {}, saved = 0, hits = 0;
+    function cardsFor(d) {
+      var A = st[d.id] = { asexp: null, score: 3, outcome: '', lesson: '' };
+      return [{ id: 'q:' + d.id, did: d.id, phase: 'asexp', kind: 'question', icon: E.domainOf(d.domain).icon,
+        eyebrow: dateShort(d.decided_on) + ' · you were ' + d.confidence + '% sure', title: 'Did “' + d.title + '” go as you expected?',
+        body: d.expected ? 'You expected: ' + d.expected : (d.choice ? 'You chose: ' + d.choice : ''), yes: 'Yes, broadly', no: 'No',
+        reason: (d.review_on === today() ? 'Due today' : 'Due ' + dateShort(d.review_on)) + ' — you set this look-back on ' + dateShort(d.decided_on) + '. Skip leaves it for later.' }];
+    }
+    function rest(d) {
+      var A = st[d.id];
+      return [
+        { id: 's:' + d.id, did: d.id, phase: 'score', kind: 'dial', title: 'Compared with what you expected, it turned out…', value: 3, min: 1, max: 5, step: 1,
+          presets: [2, 3, 4], format: function (v) { return E.SCORE_LABEL[v] || ''; }, reason: 'Drag round the ring, or tap one.' },
+        { id: 'o:' + d.id, did: d.id, phase: 'outcome', kind: 'text', title: 'What happened, in a line?', placeholder: A.asexp ? 'It went the way I thought…' : 'What surprised you…', max: 2000 },
+        { id: 'l:' + d.id, did: d.id, phase: 'lesson', kind: 'text', title: 'What would you tell yourself, back then?', placeholder: 'One line. This is the part that compounds.', skip: 'Skip', max: 1000,
+          assist: aiOn() ? { label: 'Suggest one', busy: 'Thinking…', run: function () { return suggestLesson(d, A); } } : null,
+          reason: aiOn() ? 'Optional. A suggestion only uses this decision\'s own words.' : 'Optional.' }
+      ];
+    }
+    var cards = []; batch.forEach(function (d) { cards = cards.concat(cardsFor(d)); });
+    var byId = {}; batch.forEach(function (d) { byId[d.id] = d; });
+    S.deck = TNDeck.open({
+      label: 'Look back', cards: cards,
+      onAnswer: function (c, a, deck) {
+        var d = byId[c.did], A = st[c.did];
+        if (c.phase === 'asexp') {
+          if (a === 'skip') return;
+          A.asexp = a === 'yes' ? 1 : 0;
+          // Insert this decision's remaining cards right after this one.
+          rest(d).reverse().forEach(function (x) { deck.insertNext(x); });
+          return;
+        }
+        if (c.phase === 'score') { if (a !== 'skip') A.score = a.value; return; }
+        if (c.phase === 'outcome') { A.outcome = a === 'skip' ? (A.asexp ? 'Went broadly as expected.' : 'Did not go as expected.') : a.value; return; }
+        if (c.phase === 'lesson') {
+          A.lesson = a === 'skip' ? '' : a.value;
+          saved++; if (A.asexp) hits++;
+          return saveDeckReview(d, A);
+        }
+      },
+      onDone: function () {
+        if (!saved) return { icon: 'clock', title: 'Nothing reviewed', body: 'They stay due; come back when you have a minute.', actions: [{ label: 'Done', value: 'done', primary: true }] };
+        var left = Math.max(0, S.M.due.length);
+        return { icon: 'check', title: saved + ' reviewed' + (hits === saved ? ' — all as expected' : hits ? ' — ' + hits + ' as expected' : ''),
+          body: (S.M.n >= 3 ? 'Calibration updated: you are right ' + pct(S.M.hitRate) + ' of the time when you say ' + pct(S.M.meanConf) + '.' : (3 - S.M.n) + ' more and calibration starts.') + (left ? ' ' + left + ' still due.' : ''),
+          actions: [{ label: 'Done', value: 'done', primary: true }, { label: 'See insights', value: 'insights' }] };
+      },
+      onSummary: function (v) { if (v === 'insights') showScreen('insights'); },
+      onClose: function () { S.deck = null; render(); }
+    });
+    return S.deck;
+  }
+  async function saveDeckReview(d, A) {
+    try {
+      var r = await api('/api/decided/review', { method: 'POST', body: { id: d.id, outcome: A.outcome, as_expected: A.asexp, outcome_score: A.score, lesson: A.lesson } });
+      upsert(r.decision);
+    } catch (e) { fail(e); }
+  }
+  function aiOn() { return !!(window.TNAI && TNAI.on()); }
+  function suggestLesson(d, A) {
+    return TNAI.lesson({ title: d.title, choice: d.choice || '', expected: d.expected || '', confidence: d.confidence,
+      outcome: A.outcome, as_expected: A.asexp, outcome_score: A.score });
   }
   /* -------------------------------------------------------------- Journal */
   function renderJournal() {
@@ -238,5 +337,6 @@
       $('dc-loading').innerHTML = '<div class="notice notice--danger"><div>' + esc(e.message || 'Could not load.') + (/decisions/i.test(e.message || '') ? ' — run supabase/schema.sql once to add the DECIDED table.' : '') + '</div></div>';
     }
   }
+  window.DECIDED = { state: S, openReviewDeck: openReviewDeck, showScreen: showScreen };
   TN.ready(boot);
 })();

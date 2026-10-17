@@ -97,7 +97,7 @@ async function boot({ hour = 10, seen = true, days = history(), goals = [], focu
   w.scrollTo = () => {};
   w.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
   w.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
-  for (const f of ['assets/js/global.js', 'assets/js/deck.js', 'spent/spent-engine.js', 'spent/spent-model.js', 'spent/spent-goals.js', 'spent/spent.js']) w.eval(readFileSync(resolve(ROOT, f), 'utf8'));
+  for (const f of ['assets/js/global.js', 'assets/js/deck.js', 'spent/spent-engine.js', 'spent/spent-model.js', 'spent/spent.js']) w.eval(readFileSync(resolve(ROOT, f), 'utf8'));
   const ready = new Promise((r) => w.document.addEventListener('spent:ready', r, { once: true }));
   await Promise.race([ready, tick(4000).then(() => { throw new Error('spent:ready never fired'); })]);
   await tick(20);
@@ -262,43 +262,25 @@ await t('a brand-new person: no record, no deck in the morning, Insights says wh
   ok(/Check in tonight/.test(P.$('#ins-wrap').textContent));
 });
 
-await t('countdowns: an empty list says what one is; adding one through the sheet puts it on Today', async () => {
+await t('countdowns live in DECIDED now: Today has no countdown list, and the hero is the day', async () => {
   const P = await boot({ hour: 15 });
-  ok(/goal with a date/.test(P.$('#goals-note').textContent));
-  P.$('#goal-add').click(); await tick(20);
-  ok(P.$('#goal-sheet').hasAttribute('open'));
-  eq(P.$('#gs-pin').checked, true, 'the first goal goes on Today by default');
-  eq(P.$('#gs-cat').value, 'learning');
-  P.$('#gs-name').value = 'Finish the Python course'; P.$('#gs-hours').value = '40'; P.$('#gs-due').value = '2026-11-14';
-  P.$('#goal-form').dispatchEvent(new P.w.Event('submit', { cancelable: true })); await tick(50);
-  ok(!P.$('#goal-sheet').hasAttribute('open'));
-  eq(P.db.goals[0].target_min, 2400); eq(P.db.goals[0].cat, 'learning');
-  eq(P.$$('#goals-list .sp-goal').length, 1);
-  ok(P.$('#today-hero .sp-hero--goal'), 'pinned goal takes the hero');
-  eq(P.$('#today-hero .kp-hero__big').textContent, '30 days left');
-  ok(/Yours today/.test(P.$('#today-hero .sp-hero__yours').textContent), 'today\'s hours stay, as one line');
+  ok(!P.$('#goals-list') && !P.$('#goal-sheet'), 'no countdown UI in SPENT');
+  ok(!P.$('#today-hero .sp-hero--goal'));
+  ok(/Yours today/.test(P.$('#today-hero .kp-hero__label').textContent));
   eq(P.errors.length, 0, P.errors.join());
 });
 
-await t('deleting a countdown has Undo', async () => {
-  const P = await boot({ hour: 15, goals: [{ id: 'g1', title: 'Trip', due_on: '2026-10-30', start_on: TODAY, target_min: null, cat: null, pinned: false }] });
-  P.$('[data-goal-edit="g1"]').click(); await tick(20);
-  P.$('#gs-delete').click(); await tick(50);
-  eq(P.$$('#goals-list .sp-goal').length, 0);
-  P.$('.toast__undo').click(); await tick(50);
-  eq(P.$$('#goals-list .sp-goal').length, 1, 'back');
-});
-
-await t('Focus: start from a goal, full-screen timer with the screen kept awake; a reload resumes it; Stop adds the minutes', async () => {
-  const goals = [{ id: 'g1', title: 'Python course', due_on: '2026-11-14', start_on: '2026-09-20', target_min: 2400, cat: 'learning', pinned: true }];
-  const P = await boot({ hour: 15, goals });
-  P.$('[data-goal-focus="g1"]').click(); await tick(60);
-  ok(P.$('#focus-screen'), 'timer on screen'); eq(P.$('#focus-what').textContent, 'Python course');
-  ok(/Learning/.test(P.$('.focus__eyebrow').textContent));
+await t('Focus: pick a category, full-screen timer with the screen kept awake; a reload resumes it; Stop adds the minutes', async () => {
+  const P = await boot({ hour: 15 });
+  P.$('#focus-open').click(); await tick(20);
+  ok(P.$('#focus-sheet').hasAttribute('open'));
+  ok(/What is the time for/.test(P.$('#fs-list').textContent));
+  P.$('[data-focus-cat="learning"]').click(); await tick(60);
+  ok(P.$('#focus-screen'), 'timer on screen'); eq(P.$('#focus-what').textContent, 'Learning');
   eq(P.w.__wake, 1, 'screen wake lock held'); eq(P.w.__wakeKind, 'screen');
-  // Forty minutes later the app is opened again: same server state, new page.
+  eq(P.db.focus[0].goal_id, null);
   const run = P.db.focus[0]; run.started_at = new Date(Date.parse(run.started_at) - 40 * 60000).toISOString();
-  const Q = await boot({ hour: 15, goals, focus: P.db.focus, days: Object.values(P.db.days) });
+  const Q = await boot({ hour: 15, focus: P.db.focus, days: Object.values(P.db.days) });
   ok(Q.$('#focus-screen'), 'resumed after reload');
   ok(/^(39:5\d|40:0\d)$/.test(Q.$('#focus-clock').textContent), Q.$('#focus-clock').textContent);
   ok(!Q.$('.deck'), 'no check-in on top of a running timer');
@@ -310,32 +292,14 @@ await t('Focus: start from a goal, full-screen timer with the screen kept awake;
   ok(Q.$$('#today-bar .is-assumed').length > 0, 'the rest of the day is still the usual');
 });
 
-await t('Focus without a wake lock still runs; a category is asked for when the goal has none; discard adds nothing', async () => {
-  const P = await boot({ hour: 15, wake: false, goals: [{ id: 'g2', title: 'Book draft', due_on: '2026-12-01', start_on: TODAY, target_min: 600, cat: null }] });
+await t('Focus without a wake lock still runs; discard adds nothing', async () => {
+  const P = await boot({ hour: 15, wake: false });
   P.$('#focus-open').click(); await tick(20);
-  ok(P.$('#focus-sheet').hasAttribute('open'));
-  P.$('[data-focus-goal="g2"]').click(); await tick(20);
-  ok(/no category/.test(P.$('#fs-list').textContent), 'asks which part of the day it is');
   P.$('[data-focus-cat="making"]').click(); await tick(60);
-  ok(P.$('#focus-screen')); eq(P.db.focus[0].cat, 'making'); eq(P.db.focus[0].goal_id, 'g2');
+  ok(P.$('#focus-screen')); eq(P.db.focus[0].cat, 'making');
   P.$('#focus-discard').click(); await tick(60);
   ok(!P.$('#focus-screen')); eq(P.db.focus.length, 0);
   ok(/Discarded/.test(P.$('#toast-region').textContent));
-});
-
-await t('check-in: a countdown that is behind gets its own question, even after "yes, usual"', async () => {
-  const goals = [{ id: 'g1', title: 'Python course', due_on: '2026-11-14', start_on: '2026-09-20', target_min: 2400, cat: 'learning', pinned: false }];
-  const P = await boot({ hour: 21, goals });
-  P.$('#checkin').click(); await tick(150);
-  P.$('[data-deck="yes"]').click(); await tick(200);
-  eq(P.$('.deck-card__title').textContent, 'Put time into Python course today?');
-  ok(/behind/.test(P.$('.deck-card__reason').textContent));
-  P.$('[data-deck="yes"]').click(); await tick(200);
-  ok(P.$('.deck-card--dial'), 'yes → how much');
-  P.$('[data-deck="set"]').click(); await tick(200);
-  ok(P.$('.deck-card--info'));
-  const put = P.db.puts.at(-1);
-  ok(put.blocks.learning > 0, 'learning recorded: ' + put.blocks.learning); eq(put.src.learning, 'confirmed');
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

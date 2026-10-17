@@ -1,15 +1,27 @@
 {
   "/account/account.js": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "441b2467f1057ecc"
+    "sha": "4571083be6ba3fd3"
   },
   "/assets/css/global.css": {
     "versions": [
-      "36"
+      "37"
     ],
-    "sha": "48e19ea15209c214"
+    "sha": "9df059d3fb2680c1"
+  },
+  "/assets/js/ai.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "84a1a6afc10db691"
+  },
+  "/assets/js/cards.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "d4c24243c46edf30"
   },
   "/assets/js/config.js": {
     "versions": [
@@ -19,21 +31,27 @@
   },
   "/assets/js/db.js": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "cad2e354a4098eee"
+    "sha": "43082502c7f40d6c"
   },
   "/assets/js/deck.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "0c29dc2433c12531"
+    "sha": "4de0c03e3adf365d"
   },
   "/assets/js/global.js": {
     "versions": [
       "39"
     ],
     "sha": "1057eb968e53de5c"
+  },
+  "/assets/js/letter.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "f175b7872cd83b78"
   },
   "/assets/js/pwa.js": {
     "versions": [
@@ -43,9 +61,9 @@
   },
   "/assets/js/routes-core.js": {
     "versions": [
-      "3"
+      "4"
     ],
-    "sha": "90abcf61f471aca1"
+    "sha": "579fe003990483cd"
   },
   "/assets/vendor/supabase.js": {
     "versions": [
@@ -61,21 +79,21 @@
   },
   "/decided/decided-engine.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "2d30c91b64f2b2f9"
+    "sha": "6dd1415a06c84843"
   },
   "/decided/decided.css": {
     "versions": [
-      "2"
+      "3"
     ],
-    "sha": "d96dc312a627da60"
+    "sha": "d023754188d1b608"
   },
   "/decided/decided.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "2800756ed0b03279"
+    "sha": "fbfa4dfbd157f4b4"
   },
   "/kept/kept-core.js": {
     "versions": [
@@ -85,9 +103,9 @@
   },
   "/kept/kept-data.js": {
     "versions": [
-      "1"
+      "2"
     ],
-    "sha": "b61ae28e47c78584"
+    "sha": "d59f6c4b43458e73"
   },
   "/kept/kept-engine.js": {
     "versions": [
@@ -100,6 +118,12 @@
       "2"
     ],
     "sha": "526911ad79b87200"
+  },
+  "/kept/kept-recur.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "7d2e64e76696ec1a"
   },
   "/kept/kept-settings.js": {
     "versions": [
@@ -115,15 +139,21 @@
   },
   "/kept/kept.css": {
     "versions": [
-      "4"
+      "5"
     ],
-    "sha": "029beddd22d078f0"
+    "sha": "e654148748c79789"
   },
   "/kept/kept.js": {
     "versions": [
-      "5"
+      "6"
     ],
-    "sha": "3b9f2d92872f61ac"
+    "sha": "ecc845595630d430"
+  },
+  "/letter/letter-page.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "f53c00655f8cc9c2"
   },
   "/spent/spent-data.js": {
     "versions": [
@@ -137,12 +167,6 @@
     ],
     "sha": "399745afd8364ee0"
   },
-  "/spent/spent-goals.js": {
-    "versions": [
-      "1"
-    ],
-    "sha": "bd55034a24e881dd"
-  },
   "/spent/spent-model.js": {
     "versions": [
       "1"
@@ -151,14 +175,20 @@
   },
   "/spent/spent.css": {
     "versions": [
-      "3"
+      "4"
     ],
-    "sha": "6fa8ae20d98b8900"
+    "sha": "0fd87842ad7d3b44"
   },
   "/spent/spent.js": {
     "versions": [
-      "3"
+      "4"
     ],
-    "sha": "45e7d78fdef948af"
+    "sha": "8a9e10e095af01b4"
+  },
+  "/supabase/functions/_shared/ai-contract.js": {
+    "versions": [
+      "1"
+    ],
+    "sha": "9e9ba4fde0d014ae"
   }
 }

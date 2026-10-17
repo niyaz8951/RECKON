@@ -8,6 +8,11 @@
      dial       a number on a ring you drag round, three presets, Set / Skip
      info       a line to read; Done
      action     an offer; Not now / the action
+     text       one line to write (a textarea); Skip / Save. Optional
+                `assist: { label, run }` puts a small button on the card
+                that fills the box with a suggestion (run returns a promise
+                of text); the person still edits and saves — nothing is
+                kept unless they press Save.
 
    It never decides anything: every answer goes to the page through
    onAnswer, which may add cards (a "no" opens a dial). When the stack runs
@@ -17,7 +22,7 @@
      var deck = TNDeck.open({
        label: 'Check in',
        cards: [{ id, kind: 'question', title, reason }],
-       onAnswer: function (card, answer, deck) {},   // 'yes' | 'no' | 'skip' | {value} | 'action' | 'dismiss'
+       onAnswer: function (card, answer, deck) {},   // 'yes' | 'no' | 'skip' | {value} | 'action' | 'dismiss' — a text card answers {value: string} or 'skip'
        onDone: function (deck) { return { title, body, actions: [{ label, value, primary }] } },
        onClose: function (how, deck) {}            // 'done' | 'closed'
      });
@@ -86,6 +91,8 @@
       h += '<h2 id="deck-t" class="deck-card__title">' + esc(c.title) + '</h2>';
       if (c.body) h += '<p class="deck-card__text">' + esc(c.body) + '</p>';
       if (c.kind === 'dial') h += dialHTML(c);
+      if (c.kind === 'text') h += '<label class="sr-only" for="deck-text">' + esc(c.title) + '</label><textarea id="deck-text" class="deck-text" rows="3" maxlength="' + (c.max || 1000) + '" placeholder="' + esc(c.placeholder || '') + '">' + esc(c.value || '') + '</textarea>' +
+        (c.assist ? '<div class="deck-assist"><button type="button" class="deck-chip deck-assist__go" data-assist>' + icon('sparkles', 16) + ' ' + esc(c.assist.label || 'Suggest') + '</button><p class="deck-assist__note" aria-live="polite"></p></div>' : '');
       h += '</div>';
       if (c.reason) h += '<p class="deck-card__reason">' + esc(c.reason) + '</p>';
       return h + '</article>';
@@ -95,6 +102,7 @@
         '<button type="button" class="deck-btn deck-btn--skip" data-deck="skip">Skip</button>' +
         '<button type="button" class="deck-btn deck-btn--yes" data-deck="yes">' + esc(c.yes || 'Yes') + '</button>';
       if (c.kind === 'dial') return '<button type="button" class="deck-btn deck-btn--skip" data-deck="skip">Skip</button><button type="button" class="deck-btn deck-btn--yes" data-deck="set">Set</button>';
+      if (c.kind === 'text') return '<button type="button" class="deck-btn deck-btn--skip" data-deck="skip">' + esc(c.skip || 'Skip') + '</button><button type="button" class="deck-btn deck-btn--yes" data-deck="set">' + esc(c.save || 'Save') + '</button>';
       if (c.kind === 'action') return '<button type="button" class="deck-btn deck-btn--skip" data-deck="dismiss">' + esc(c.dismiss || 'Not now') + '</button><button type="button" class="deck-btn deck-btn--yes" data-deck="action">' + esc(c.action || 'Do it') + '</button>';
       var acts = c.actions && c.actions.length ? c.actions : [{ label: 'Done', value: 'done', primary: true }];
       return acts.map(function (a, i) { return '<button type="button" class="deck-btn ' + (a.primary ? 'deck-btn--yes' : 'deck-btn--skip') + '" data-deck="info" data-i="' + i + '">' + esc(a.label) + '</button>'; }).join('');
@@ -211,10 +219,14 @@
       var card = current, c = card.data;
       var value = a;
       if (c.kind === 'dial') value = a === 'skip' ? 'skip' : { value: c.value };
+      else if (c.kind === 'text') {
+        var txt = String((card.node.querySelector('.deck-text') || {}).value || '').trim();
+        value = a === 'skip' || !txt ? 'skip' : { value: txt };
+      }
       else if (c.kind === 'info') value = a;
       tick(a === 'skip' || a === 'dismiss' ? 4 : 10);
       api.answers.push({ id: c.id, card: c, answer: value });
-      live.textContent = typeof value === 'string' ? value : fmt(c, value.value);
+      live.textContent = typeof value === 'string' ? value : c.kind === 'text' ? 'Saved' : fmt(c, value.value);
       leave(card, a, from, function () {
         done.push(c); current = null;
         var ret;
@@ -244,12 +256,33 @@
       foot.setAttribute('data-kind', c.kind);
       if (c.kind === 'question') wireSwipe(current);
       if (c.kind === 'dial') wireDial(current);
+      if (c.kind === 'text') wireText(current);
       paintDots();
       // Enter: a spring up from the stack; reduced motion fades in.
       node.classList.add('is-entering');
       root.requestAnimationFrame ? root.requestAnimationFrame(function () { node.classList.remove('is-entering'); }) : node.classList.remove('is-entering');
-      var focusTo = c.kind === 'dial' ? node.querySelector('.deck-dial__ring') : foot.querySelector('.deck-btn--yes') || node;
+      var focusTo = c.kind === 'dial' ? node.querySelector('.deck-dial__ring') : c.kind === 'text' ? node.querySelector('.deck-text') : foot.querySelector('.deck-btn--yes') || node;
       try { focusTo.focus({ preventScroll: true }); } catch (e) {}
+    }
+    /* A text card: Ctrl/⌘+Enter saves; the assist button fills the box
+       with a suggestion the person can edit. */
+    function wireText(card) {
+      var ta = card.node.querySelector('.deck-text');
+      ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); answer('set'); } });
+      var go = card.node.querySelector('[data-assist]'), note = card.node.querySelector('.deck-assist__note');
+      if (!go) return;
+      go.addEventListener('click', function () {
+        if (go.disabled) return;
+        go.disabled = true; go.setAttribute('aria-busy', 'true'); note.textContent = card.data.assist.busy || 'Thinking…';
+        Promise.resolve().then(function () { return card.data.assist.run(); }).then(function (txt) {
+          if (current !== card) return;
+          if (txt) { ta.value = String(txt); note.textContent = card.data.assist.done || 'A suggestion — change it or keep it.'; try { ta.focus({ preventScroll: true }); } catch (e) {} }
+          else note.textContent = card.data.assist.empty || 'No suggestion this time.';
+        }).catch(function (err) {
+          if (current !== card) return;
+          note.textContent = (err && err.message) || 'No suggestion this time.';
+        }).then(function () { go.disabled = false; go.removeAttribute('aria-busy'); });
+      });
     }
     function next() {
       if (closed) return;

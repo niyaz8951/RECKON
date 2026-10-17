@@ -343,6 +343,68 @@ create table if not exists public.decisions (
 );
 create index if not exists idx_decisions_user on public.decisions(user_id, status, review_on);
 
+-- ======================================================== v2, phase 3
+-- Patterns KEPT's recurrence detector found and the person answered once:
+-- confirmed (yes, it repeats), dismissed (never ask again), or reserved
+-- (confirmed, and money is being set aside for the next one from
+-- reserve_from). key is the normalised payee. (kept_recurring is the
+-- separate table of rules that post rows on a schedule.)
+create table if not exists public.kept_patterns (
+  id           text primary key,                  -- kpat_…
+  user_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  key          text not null,
+  status       text not null default 'confirmed', -- confirmed | dismissed | reserved
+  label        text,
+  freq         text,                              -- monthly | quarterly | yearly
+  amount_minor bigint,                            -- the usual amount, positive
+  next_d       text,                              -- YYYY-MM-DD expected next
+  reserve_from text,                              -- YYYY-MM-DD the set-aside starts
+  created_at   text not null default public.now_iso(),
+  updated_at   text not null default public.now_iso(),
+  unique (user_id, key),
+  check (status in ('confirmed', 'dismissed', 'reserved'))
+);
+
+-- What the person made of each card: shown, useful, not useful, acted on.
+-- A card shown and never answered counts as ignored. CardEngine decays
+-- card-type scores from this, so the deck learns what this person values.
+create table if not exists public.card_feedback (
+  id         text primary key,                    -- cfb_…
+  user_id    uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  app        text not null,                       -- kept | spent | decided | hub
+  type       text not null,                       -- heads-up | lookback | review | import | letter
+  card_key   text not null,
+  verdict    text not null,                       -- shown | useful | not | acted
+  d          text not null,                       -- YYYY-MM-DD
+  created_at text not null default public.now_iso(),
+  check (verdict in ('shown', 'useful', 'not', 'acted'))
+);
+create index if not exists idx_card_feedback_user on public.card_feedback(user_id, created_at);
+
+-- ============================================================ AI (phase 4)
+-- Optional, off by default (profiles.ai_on). Only the Edge Function
+-- (service role) writes these two; a person can read their own rows.
+alter table public.profiles add column if not exists ai_on integer not null default 0;
+create table if not exists public.ai_usage (
+  id         text primary key,                    -- user_id|day|task
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  day        text not null,                       -- YYYY-MM-DD (UTC)
+  task       text not null,                       -- lesson | letter
+  n          integer not null default 0,
+  updated_at text not null default public.now_iso()
+);
+create table if not exists public.ai_cache (
+  id             text primary key,                -- aic_…
+  user_id        uuid not null references public.profiles(id) on delete cascade,
+  task           text not null,
+  key            text not null,                   -- e.g. the week a letter covers
+  prompt_version text not null,
+  provider       text,
+  output_json    text not null,
+  created_at     text not null default public.now_iso(),
+  unique (user_id, task, key)
+);
+
 
 -- ================================================================ RLS
 alter table public.profiles             enable row level security;
@@ -360,6 +422,10 @@ alter table public.spent_profile        enable row level security;
 alter table public.decisions            enable row level security;
 alter table public.goals                enable row level security;
 alter table public.focus_sessions       enable row level security;
+alter table public.kept_patterns        enable row level security;
+alter table public.card_feedback        enable row level security;
+alter table public.ai_usage             enable row level security;
+alter table public.ai_cache             enable row level security;
 
 -- profiles: your own row, or every row for an admin. Rows are created by
 -- the sign-up trigger and deleted through admin_delete_user, never directly.
@@ -392,11 +458,24 @@ do $$
 declare t text;
 begin
   foreach t in array array['kept_transactions', 'kept_categories', 'kept_emis', 'kept_recurring', 'kept_budgets',
-                           'kept_profile', 'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions'] loop
+                           'kept_profile', 'spent_days', 'spent_profile', 'decisions', 'goals', 'focus_sessions',
+                           'kept_patterns', 'card_feedback'] loop
     execute format('drop policy if exists %I on public.%I', t || '_own', t);
     execute format('create policy %I on public.%I for all to authenticated
                       using (user_id = auth.uid() and public.is_active())
                       with check (user_id = auth.uid() and public.is_active())', t || '_own', t);
+  end loop;
+end $$;
+
+-- AI rows: read your own; only the Edge Function (service role, which
+-- bypasses RLS) writes them, so a person cannot reset their daily cap.
+do $$
+declare t text;
+begin
+  foreach t in array array['ai_usage', 'ai_cache'] loop
+    execute format('drop policy if exists %I on public.%I', t || '_read', t);
+    execute format('create policy %I on public.%I for select to authenticated
+                      using (user_id = auth.uid() and public.is_active())', t || '_read', t);
   end loop;
 end $$;
 
@@ -409,3 +488,4 @@ insert into public.migrations (name) values ('schema-2026-10-supabase') on confl
 insert into public.migrations (name) values ('schema-2026-10-spent-decided') on conflict (name) do nothing;
 insert into public.migrations (name) values ('schema-2026-10-coach-1') on conflict (name) do nothing;
 insert into public.migrations (name) values ('schema-2026-10-coach-2') on conflict (name) do nothing;
+insert into public.migrations (name) values ('schema-2026-10-coach-3') on conflict (name) do nothing;

@@ -1,11 +1,12 @@
 {
   "name": "reckon",
   "private": true,
-  "description": "RECKON — a private hub for personal apps (KEPT, SPENT, DECIDED). Static site on GitHub Pages; data in Supabase.",
+  "description": "RECKON \u2014 a private hub for personal apps (KEPT, SPENT, DECIDED). Static site on GitHub Pages; data in Supabase.",
   "scripts": {
     "test": "node _dev/run-tests.mjs",
     "versions": "node _dev/asset-versions.mjs --update",
-    "serve": "npx --yes http-server -p 8080 -c-1 ."
+    "serve": "npx --yes http-server -p 8080 -c-1 .",
+    "eval:live": "node _dev/ai-evals/run-live.mjs"
   },
   "engines": {
     "node": ">=22"

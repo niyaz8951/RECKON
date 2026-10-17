@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f8fa">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f13">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RECKON">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/css/global.css?v=37">
+  <title>Your week — RECKON</title>
+  <meta name="description" content="Your week in RECKON, as a short letter.">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header data-site-header></header>
+
+  <!-- One job: read last week. The letter is written from sums the page
+       computes; with AI on, a model words it (checked: every number must be
+       one of those sums); with AI off, or when it does not answer, the
+       plain version is the letter. -->
+  <main id="main" class="wrap lt">
+    <div class="lt-head">
+      <p class="eyebrow" id="lt-week">Last week</p>
+      <h1>Your week</h1>
+    </div>
+    <div id="lt-loading" class="stack" aria-busy="true" aria-label="Reading your week">
+      <div class="skeleton skeleton--card" style="height:260px"></div>
+      <div class="skeleton skeleton--card" style="height:72px"></div>
+    </div>
+    <article class="lt-letter" id="lt-letter" hidden></article>
+    <div class="list-group" id="lt-next" hidden>
+      <p class="list-group__title">For next week</p>
+      <div class="list-group__card"><div class="list-row list-row--static"><span class="list-row__icon" data-icon="lightbulb"></span><span class="list-row__label" id="lt-sug"></span></div></div>
+    </div>
+    <p class="lt-by" id="lt-by" hidden></p>
+    <details class="lt-facts" id="lt-facts" hidden><summary>The numbers it was written from</summary><dl id="lt-dl"></dl></details>
+  </main>
+
+  <footer data-site-footer></footer>
+  <div id="toast-region" aria-live="polite"></div>
+
+  <script src="../assets/js/config.js?v=2"></script>
+  <script src="../assets/vendor/supabase.js?v=1"></script>
+  <script src="../assets/js/db.js?v=3"></script>
+  <script src="../assets/js/routes-core.js?v=4"></script>
+  <script src="../assets/js/global.js?v=39"></script>
+  <script src="../assets/js/pwa.js?v=5"></script>
+  <script src="../kept/kept-core.js?v=1" defer></script>
+  <script src="../kept/kept-data.js?v=2" defer></script>
+  <script src="../spent/spent-engine.js?v=2" defer></script>
+  <script src="../spent/spent-data.js?v=3" defer></script>
+  <script src="../decided/decided-engine.js?v=2" defer></script>
+  <script src="../decided/decided-data.js?v=1" defer></script>
+  <script src="../supabase/functions/_shared/ai-contract.js?v=1" defer></script>
+  <script src="../assets/js/ai.js?v=1" defer></script>
+  <script src="../assets/js/letter.js?v=1" defer></script>
+  <script src="../letter/letter-page.js?v=1" defer></script>
+</body>
+</html>

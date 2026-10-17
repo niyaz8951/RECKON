@@ -56,5 +56,16 @@ t('dates and buckets', () => {
   eq(E.domainOf('nope').key, 'life');
 });
 
+t('countdown: days pending until the look-back, and how much of the wait has gone', () => {
+  const d = dec({ decided_on: '2026-10-01', review_on: '2026-10-31' });
+  let c = E.countdown(d, '2026-10-17');
+  eq(c.left, 14); eq(c.total, 30); eq(c.gone, 16); eq(Math.round(c.share * 100), 53); eq(c.state, 'waiting');
+  eq(c.head, '14 days to go'); eq(c.sub, 'Decided 16 days ago · 30-day wait');
+  eq(E.countdown(d, '2026-10-30').head, '1 day to go'); eq(E.countdown(d, '2026-10-30').state, 'soon');
+  eq(E.countdown(d, '2026-10-31').state, 'due'); eq(E.countdown(d, '2026-10-31').share, 1);
+  c = E.countdown(d, '2026-11-02'); eq(c.state, 'overdue'); eq(c.head, '2 days past its date'); eq(c.share, 1);
+  c = E.countdown(dec({ decided_on: '2026-10-17', review_on: '2026-10-17' }), '2026-10-17'); eq(c.total, 1); eq(c.sub, 'Decided today · 1-day wait');
+});
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);

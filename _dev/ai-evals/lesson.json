@@ -1,0 +1,346 @@
+{
+ "task": "lesson",
+ "note": "Recorded answers are hand-written fixtures that exercise the contract (valid and invalid). npm run eval:live measures real providers against the same inputs.",
+ "cases": [
+  {
+   "id": "L01",
+   "input": {
+    "title": "Take the Riyadh role",
+    "choice": "Yes, from January",
+    "expected": "Harder first six months, better money, home every other weekend",
+    "confidence": 75,
+    "outcome": "Money better, but home once a month at best. Kids noticed.",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "You priced the salary carefully but guessed at the travel; check the hardest cost before you say yes.",
+    "confidence": 0.8
+   },
+   "valid": true
+  },
+  {
+   "id": "L02",
+   "input": {
+    "title": "Buy the car now vs wait for 2027 model",
+    "choice": "",
+    "expected": "Prices go up next year, so buying now saves money",
+    "confidence": 80,
+    "outcome": "Prices dropped 8% in March. Should have waited.",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "You felt 80% sure about a price forecast — next time start from how often such forecasts are right.",
+    "confidence": 0.7
+   },
+   "valid": true
+  },
+  {
+   "id": "L03",
+   "input": {
+    "title": "Start the morning run",
+    "choice": "",
+    "expected": "I will run 3 times a week by December",
+    "confidence": 70,
+    "outcome": "Ran 3 times a week most weeks, missed during Ramadan",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "A small, fixed slot beat motivation; plan the breaks, like Ramadan, before they arrive.",
+    "confidence": 0.75
+   },
+   "valid": true
+  },
+  {
+   "id": "L04",
+   "input": {
+    "title": "Switch bank to get 2% cashback",
+    "choice": "",
+    "expected": "Save around AED 150 a month",
+    "confidence": 65,
+    "outcome": "Saved about AED 90 a month, fees ate the rest",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "You counted the cashback and skipped the fees — read the fee table before switching for a perk.",
+    "confidence": 0.8
+   },
+   "valid": true
+  },
+  {
+   "id": "L05",
+   "input": {
+    "title": "Kid ko naya school",
+    "choice": "",
+    "expected": "Better teachers, thoda zyada fees but worth it",
+    "confidence": 70,
+    "outcome": "Teachers achhe hain, commute 40 min extra, bacha thak jata hai",
+    "as_expected": 0,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "You weighed teachers and fees but not the daily commute; walk the route at school time before choosing.",
+    "confidence": 0.7
+   },
+   "valid": true
+  },
+  {
+   "id": "L06",
+   "input": {
+    "title": "Learn Python on weekends",
+    "choice": "",
+    "expected": "Finish the course by end of November",
+    "confidence": 60,
+    "outcome": "Finished in time, used it at work twice already",
+    "as_expected": 1,
+    "outcome_score": 5
+   },
+   "recorded": {
+    "lesson": "Weekend blocks worked when tied to a real use at work — keep learning attached to a job you need done.",
+    "confidence": 0.8
+   },
+   "valid": true
+  },
+  {
+   "id": "L07",
+   "input": {
+    "title": "Say no to the extra project",
+    "choice": "",
+    "expected": "Less stress, boss slightly unhappy for a week",
+    "confidence": 70,
+    "outcome": "Boss was fine, stress went down a lot",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "You overestimated how much a clear no would cost you; say it earlier next time.",
+    "confidence": 0.75
+   },
+   "valid": true
+  },
+  {
+   "id": "L08",
+   "input": {
+    "title": "Move to a cheaper flat",
+    "choice": "",
+    "expected": "Save AED 2,000 a month, small hassle",
+    "confidence": 85,
+    "outcome": "Saved AED 2,000 but moving cost AED 6,500",
+    "as_expected": 1,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "You were right on the rent and silent on the move; count one-off costs against the first months of savings.",
+    "confidence": 0.7
+   },
+   "valid": true
+  },
+  {
+   "id": "L09",
+   "input": {
+    "title": "Invest bonus in index fund",
+    "choice": "",
+    "expected": "Grows steadily, no need to watch it",
+    "confidence": 75,
+    "outcome": "Down 4% after three months, did not touch it",
+    "as_expected": 1,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "Leaving it alone was the plan and you held to it — judge it on the process, not three months.",
+    "confidence": 0.7
+   },
+   "valid": true
+  },
+  {
+   "id": "L10",
+   "input": {
+    "title": "Visit parents in Pune for Diwali",
+    "choice": "",
+    "expected": "Tiring but worth it",
+    "confidence": 90,
+    "outcome": "Exactly that. Worth it.",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "When the reason is people, trust the pull — you were right to go.",
+    "confidence": 0.6
+   },
+   "valid": true
+  },
+  {
+   "id": "L11",
+   "input": {
+    "title": "Buy the car now",
+    "choice": "",
+    "expected": "Prices go up",
+    "confidence": 80,
+    "outcome": "Prices dropped",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "Prices fell 12% so you lost AED 9,000 by buying early.",
+    "confidence": 0.7
+   },
+   "valid": false
+  },
+  {
+   "id": "L12",
+   "input": {
+    "title": "Start the morning run",
+    "choice": "",
+    "expected": "3 times a week",
+    "confidence": 70,
+    "outcome": "Mostly did it",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "Good.",
+    "confidence": 0.9
+   },
+   "valid": false
+  },
+  {
+   "id": "L13",
+   "input": {
+    "title": "Switch bank",
+    "choice": "",
+    "expected": "Save money",
+    "confidence": 65,
+    "outcome": "Saved less",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "Read https://example.com before switching banks next time.",
+    "confidence": 0.6
+   },
+   "valid": false
+  },
+  {
+   "id": "L14",
+   "input": {
+    "title": "Learn Python",
+    "choice": "",
+    "expected": "Finish by November",
+    "confidence": 60,
+    "outcome": "Finished",
+    "as_expected": 1,
+    "outcome_score": 5
+   },
+   "recorded": {
+    "lessons": "You did well.",
+    "confidence": 0.6
+   },
+   "valid": false
+  },
+  {
+   "id": "L15",
+   "input": {
+    "title": "Say no to the project",
+    "choice": "",
+    "expected": "Less stress",
+    "confidence": 70,
+    "outcome": "Less stress",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. You were right. ",
+    "confidence": 0.6
+   },
+   "valid": false
+  },
+  {
+   "id": "L16",
+   "input": {
+    "title": "Move flat",
+    "choice": "",
+    "expected": "Save AED 2,000",
+    "confidence": 85,
+    "outcome": "Saved AED 2,000",
+    "as_expected": 1,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "Saving AED 2,000 a month was worth the hassle of moving.",
+    "confidence": 1.4
+   },
+   "valid": false
+  },
+  {
+   "id": "L17",
+   "input": {
+    "title": "Take the Riyadh role",
+    "choice": "",
+    "expected": "Better money",
+    "confidence": 75,
+    "outcome": "Better money, less home",
+    "as_expected": 0,
+    "outcome_score": 2
+   },
+   "recorded": {
+    "lesson": "“You counted the money and guessed at the distance; weigh what you will miss before what you will earn.”",
+    "confidence": 0.8
+   },
+   "valid": true
+  },
+  {
+   "id": "L18",
+   "input": {
+    "title": "Book a Georgia holiday",
+    "choice": "",
+    "expected": "Cheap and relaxing",
+    "confidence": 70,
+    "outcome": "Relaxing, cost 30% over",
+    "as_expected": 0,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "You guessed the budget from the flight price; add a third for everything after landing.",
+    "confidence": 0.6
+   },
+   "valid": true
+  },
+  {
+   "id": "L19",
+   "input": {
+    "title": "Hire the tutor for maths",
+    "choice": "",
+    "expected": "Grades up by the next term",
+    "confidence": 65,
+    "outcome": "Grades up by one level",
+    "as_expected": 1,
+    "outcome_score": 4
+   },
+   "recorded": {
+    "lesson": "A steady weekly tutor did what you hoped; decide such things a term earlier.",
+    "confidence": 0.7
+   },
+   "valid": true
+  },
+  {
+   "id": "L20",
+   "input": {
+    "title": "Cancel gym, run outside",
+    "choice": "",
+    "expected": "Same fitness, save AED 250 a month",
+    "confidence": 70,
+    "outcome": "Saved AED 250, ran less in summer heat",
+    "as_expected": 0,
+    "outcome_score": 3
+   },
+   "recorded": {
+    "lesson": "You planned for the savings and not for August; Dubai summer needs an indoor plan.",
+    "confidence": 0.75
+   },
+   "valid": true
+  }
+ ]
+}

@@ -207,7 +207,7 @@
     var s = await auth.session();
     if (!s) { meCache = { at: Date.now(), value: null }; return null; }
     var p = await db.first('profiles', { where: { id: s.user.id } });
-    var value = p ? { id: p.id, email: p.email, name: p.name, role: p.role, status: p.status, avatar_url: p.avatar || null, last_login_at: p.last_login_at } : null;
+    var value = p ? { id: p.id, email: p.email, name: p.name, role: p.role, status: p.status, avatar_url: p.avatar || null, last_login_at: p.last_login_at, ai_on: p.ai_on === 1 || p.ai_on === true } : null;
     meCache = { at: Date.now(), value: value };
     return value;
   }
@@ -262,7 +262,22 @@
     } catch (e) { /* ignore */ }
   }
 
+  /* The one Edge Function (AI). The answer, or an Error with the
+     function's own words. Never throws without a message a person can read. */
+  async function invoke(name, body, ms) {
+    var r;
+    try { r = await client().functions.invoke(name, { body: body, timeout: ms || 12000 }); }
+    catch (e) { throw fail('No connection — write your own this time.', 503); }
+    if (r.error) {
+      var msg = 'No suggestion this time.';
+      try { var j = r.error.context && r.error.context.json ? await r.error.context.json() : null; if (j && j.error) msg = j.error; } catch (e) { /* keep the plain message */ }
+      throw fail(msg, (r.error.context && r.error.context.status) || 503);
+    }
+    return r.data;
+  }
+
   root.TNData = {
+    invoke: invoke,
     db: db, auth: auth, route: route, handle: handle, me: me, forgetMe: forgetMe,
     requireUser: requireUser, requireAdmin: requireAdmin, fail: fail, mapError: mapError,
     now: now, id: newId, audit: audit,

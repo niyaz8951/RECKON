@@ -29,7 +29,7 @@
  * a shared device honest even though the shell holds nothing personal.
  */
 
-const VERSION = 'ssd-hub-v12';   // runs under a sub-path (GitHub project site)
+const VERSION = 'ssd-hub-v13';   // runs under a sub-path (GitHub project site)
 
 /* Where the site lives: '/' on its own domain, '/Reckon/' on a GitHub
    project site. The worker sits at the site root, so its own folder is the
@@ -47,34 +47,39 @@ const OFFLINE_URL = U('offline.html');
    miss costs only that file, not the whole install. */
 const PRECACHE = [
   '/offline.html',
-  '/', '/kept/', '/kept/settings/', '/spent/', '/decided/', '/account/',
+  '/', '/kept/', '/kept/settings/', '/spent/', '/decided/', '/letter/', '/account/',
   // Exactly as the pages reference them, ?v= included, so the cache key
   // matches. The shell test fails if one of these drifts from the markup.
-  '/assets/css/global.css?v=36',
+  '/assets/css/global.css?v=37',
   '/assets/js/config.js?v=2',
   '/assets/vendor/supabase.js?v=1',
-  '/assets/js/db.js?v=2',
-  '/assets/js/routes-core.js?v=3',
+  '/assets/js/db.js?v=3',
+  '/assets/js/routes-core.js?v=4',
   '/assets/js/global.js?v=39',
   '/assets/js/pwa.js?v=5',
-  '/assets/js/deck.js?v=1',
-  '/kept/kept.css?v=4',
+  '/assets/js/deck.js?v=2',
+  '/assets/js/cards.js?v=1',
+  '/assets/js/ai.js?v=1',
+  '/assets/js/letter.js?v=1',
+  '/supabase/functions/_shared/ai-contract.js?v=1',
+  '/kept/kept-recur.js?v=1',
+  '/letter/letter-page.js?v=1',
+  '/kept/kept.css?v=5',
   '/kept/kept-engine.js?v=1',
   '/kept/kept-core.js?v=1',
-  '/kept/kept-data.js?v=1',
+  '/kept/kept-data.js?v=2',
   '/kept/kept-store.js?v=1',
   '/kept/kept-import.js?v=2',
-  '/kept/kept.js?v=5',
-  '/spent/spent.css?v=3',
+  '/kept/kept.js?v=6',
+  '/spent/spent.css?v=4',
   '/spent/spent-engine.js?v=2',
   '/spent/spent-model.js?v=1',
-  '/spent/spent-goals.js?v=1',
   '/spent/spent-data.js?v=3',
-  '/spent/spent.js?v=3',
-  '/decided/decided.css?v=2',
-  '/decided/decided-engine.js?v=1',
+  '/spent/spent.js?v=4',
+  '/decided/decided.css?v=3',
+  '/decided/decided-engine.js?v=2',
   '/decided/decided-data.js?v=1',
-  '/decided/decided.js?v=1',
+  '/decided/decided.js?v=2',
   '/assets/icons/icon-192.png'
 ].map(U);
 
@@ -114,7 +119,7 @@ self.addEventListener('message', (event) => {
 });
 
 /* Static: anything under /assets/, and an app's own scripts and styles
-   (/kept/kept.js?v=4) — those are versioned by ?v= in the markup like
+   (/kept/kept.js?v=6) — those are versioned by ?v= in the markup like
    everything under /assets/, so a changed file arrives under a new URL. */
 function isStaticAsset(url) {
   if (!/\.(css|js|mjs|png|svg|jpg|jpeg|webp|ico|woff2?|ttf)$/i.test(url.pathname)) return false;
