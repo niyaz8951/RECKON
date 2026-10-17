@@ -26,7 +26,7 @@ const { DEFAULT_CATEGORIES } = KC;
 const { computeFindings } = KC;
 const analysisNow = () => ({ findings: computeFindings({ rows: live(), emis: db.emis, rules: db.rules, prof: db.profile }), narration: null, stale: true });
 const cats = DEFAULT_CATEGORIES.map((c, i) => ({ id: 'kcat_' + i, ...c, sort: i }));
-const db = { profile: { id: 'kprf_1', currency: 'AED', target_keep_bp: 2000, ramp_months: 6, profile_json: { age: 32, retireAge: 60, ret: 7, infl: 3, nw: 0, kids: [], majors: [], kidCost: 25000000, name: '' } }, tx: [], emis: [], rules: [], budgets: [], insights: [], calls: [] };
+const db = { profile: { id: 'kprf_1', currency: 'AED', target_keep_bp: 2000, ramp_months: 6, profile_json: { age: 32, retireAge: 60, ret: 7, infl: 3, nw: 0, kids: [], majors: [], kidCost: 25000000, name: '' } }, tx: [], emis: [], rules: [], budgets: [], insights: [], calls: [], patterns: [], feedback: [] };
 let seq = 0;
 function hash(d, a, s) { const x = d + '|' + Math.round(a) + '|' + String(s || '').slice(0, 60); let h = 5381; for (let i = 0; i < x.length; i++) h = ((h << 5) + h + x.charCodeAt(i)) | 0; return 't' + (h >>> 0).toString(36); }
 function live() { return db.tx.filter((r) => !r.deleted_at); }
@@ -50,7 +50,13 @@ async function fakeFetch(url, opts) {
   db.calls.push(m + ' ' + u.pathname + u.search);
   const p = u.pathname;
   if (p === '/api/auth/me') return json({ user });
-  if (p === '/api/kept/bootstrap') return json({ profile: db.profile, categories: cats, ai: false, emis: db.emis, rules: db.rules, transactions: live(), posted: { added: 0, updated: 0, skipped: 0, ran: false }, today: new Date().toISOString().slice(0, 10), analysis: analysisNow() });
+  if (p === '/api/kept/bootstrap') return json({ profile: db.profile, categories: cats, ai: false, emis: db.emis, rules: db.rules, transactions: live(), posted: { added: 0, updated: 0, skipped: 0, ran: false }, today: new Date().toISOString().slice(0, 10), analysis: analysisNow(), patterns: db.patterns, feedback: db.feedback });
+  if (p === '/api/kept/patterns') {
+    if (m === 'PUT') { db.patterns = db.patterns.filter((x) => x.key !== b.key).concat([{ ...b, amount_minor: Math.abs(b.amount_minor), reserve_from: b.status === 'reserved' ? new Date().toISOString().slice(0, 10) : null }]); }
+    if (m === 'DELETE') db.patterns = db.patterns.filter((x) => x.key !== u.searchParams.get('key'));
+    return json({ ok: true, patterns: db.patterns });
+  }
+  if (p === '/api/cards/feedback') { if (m === 'POST') db.feedback.push(b); return json({ ok: true, feedback: db.feedback }); }
   if (p === '/api/kept/analysis') return json({ ...analysisNow(), ai: false });
   if (p === '/api/kept/profile') { if (m === 'PUT') { Object.assign(db.profile, { currency: b.currency || db.profile.currency, target_keep_bp: b.target_keep_bp || db.profile.target_keep_bp, ramp_months: b.ramp_months || db.profile.ramp_months }); Object.assign(db.profile.profile_json, b.profile_json || {}); } return json({ profile: db.profile, categories: cats, ai: false }); }
   if (p === '/api/kept/emis') {
@@ -91,7 +97,7 @@ window.confirm = () => true;
 window.Chart = class { constructor() { window.__charts = (window.__charts || 0) + 1; } destroy() {} }; window.Chart.defaults = { font: {}, plugins: { legend: { labels: {} } } };
 window.XLSX = { utils: { book_new: () => ({}), aoa_to_sheet: () => ({}), book_append_sheet: () => {} }, writeFile: (wb, name) => { window.__downloaded = name; } };
 window.HTMLCanvasElement.prototype.getContext = () => null;
-for (const f of ['assets/js/global.js', 'kept/kept-engine.js', 'kept/kept-core.js', 'kept/kept-store.js', 'kept/kept-import.js', 'kept/kept.js']) window.eval(readFileSync(resolve(ROOT, f), 'utf8'));
+for (const f of ['assets/js/global.js', 'kept/kept-engine.js', 'kept/kept-recur.js', 'assets/js/cards.js', 'kept/kept-core.js', 'kept/kept-store.js', 'kept/kept-import.js', 'kept/kept.js']) window.eval(readFileSync(resolve(ROOT, f), 'utf8'));
 
 const ready = new Promise((r) => window.document.addEventListener('kept:ready', r, { once: true }));
 await Promise.race([ready, tick(4000).then(() => { throw new Error('kept:ready never fired'); })]);
@@ -284,6 +290,33 @@ await t('dark theme re-renders without errors', async () => {
 });
 await t('the page only ever talked to /api/auth/me and /api/kept/*', async () => {
   for (const c of db.calls) ok(/^(GET|POST|PUT|DELETE|PATCH) \/api\/(auth\/me|kept\/)/.test(c), c);
+});
+
+await t('heads-up card: a yearly bill ~20 days out gets one card with its reason; "Set aside" holds money back from Safe to spend, with Undo', async () => {
+  const iso = (x) => x.toISOString().slice(0, 10);
+  const day = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return iso(x); };
+  merge({ d: day(-730 + 20), descr: 'AXA CAR INSURANCE RENEWAL', amount_minor: -230000, cat: 'Insurance' }, 'import');
+  merge({ d: day(-365 + 20), descr: 'AXA CAR INSURANCE RENEWAL', amount_minor: -240000, cat: 'Insurance' }, 'import');
+  await window.KEPT.reload(); window.KEPT.showScreen('home'); await tick(30);
+  window.KEPT.render();
+  const card = $('#kp-card-slot .kp-card');
+  ok(card, 'card on home');
+  eq(card.getAttribute('data-card'), 'heads-up');
+  ok(/^Axa Car Insurance was AED 2,400 on .* last year\.$/.test($('.kp-card__title').textContent), $('.kp-card__title').textContent);
+  ok(/^Shown because it came 2 times, a year apart/.test($('.kp-card__why').textContent));
+  await tick(20);
+  ok(db.feedback.some((f) => f.verdict === 'shown' && f.type === 'heads-up'), 'shown is recorded');
+  const safeBefore = window.KEPT.state.M && $('#home-wrap .kp-hero__big').textContent;
+  $('[data-card-act="0"]').click(); await tick(60);
+  eq(db.patterns.length, 1); eq(db.patterns[0].status, 'reserved'); eq(db.patterns[0].amount_minor, 235000);
+  ok(db.feedback.some((f) => f.verdict === 'acted'));
+  ok(/Holding back AED \d+\/day for Axa Car Insurance/.test($('.kp-setaside').textContent), 'hero says what is held back');
+  ok(!$('#kp-card-slot .kp-card'), 'answered: the day is quiet');
+  ok(/Holding back/.test($('#toast-region').textContent));
+  ok(safeBefore !== null);
+  $('.toast__undo').click(); await tick(60);
+  eq(db.patterns.length, 0, 'undo removes the answer'); ok(!$('.kp-setaside'));
+  eq(consoleErrors.length, 0, consoleErrors.join(' | '));
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

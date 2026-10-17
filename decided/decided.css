@@ -63,3 +63,14 @@
 .dc-lessons li span { display: block; font-style: normal; font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
 .kp-hero__big small { font-size: 0.6em; color: var(--color-text-muted); }
 .dc .panel__head { flex-wrap: wrap; gap: var(--space-2); }
+
+/* Countdown to the look-back: one line and a hairline track. */
+.dc-count { margin-top: var(--space-2); }
+.dc-count__head { margin: 0 0 6px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-2); font-size: 0.875rem; }
+.dc-count__head b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.dc-count__head span { font-size: 0.75rem; color: var(--color-text-muted); }
+.dc-count__track { display: block; height: 4px; border-radius: 2px; background: var(--color-surface-sunken); overflow: hidden; }
+.dc-count__track i { display: block; height: 100%; border-radius: 2px; background: var(--color-primary); }
+.dc-count--soon .dc-count__head b, .dc-count--due .dc-count__head b { color: var(--color-primary); }
+.dc-count--overdue .dc-count__head b { color: var(--color-danger, #ff3b30); }
+.dc-hero .kp-hero__sub b { color: var(--color-text); font-weight: 600; }

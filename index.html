@@ -15,7 +15,7 @@
   <!-- Theme before first paint (same rule as applyTheme in global.js): the
        saved choice, else the phone's own setting. -->
   <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
-  <link rel="stylesheet" href="assets/css/global.css?v=36">
+  <link rel="stylesheet" href="assets/css/global.css?v=37">
   <title>RECKON</title>
   <meta name="description" content="RECKON — a private hub for personal apps. Sign in required.">
 </head>
@@ -24,8 +24,8 @@
   <header data-site-header></header>
 
   <!-- The launcher. One tile per app, drawn from the registry in global.js,
-       and nothing else: no feed, no stats, no "recent". Each app owns its
-       own front door. -->
+       and one row under them: last week, as a letter. No feed, no stats, no
+       "recent". Each app owns its own front door. -->
   <main id="main" class="wrap launcher">
     <div class="launcher__head">
       <p class="eyebrow">Apps</p>
@@ -33,13 +33,18 @@
       <p>Pick an app. Everything here is yours alone and stays inside this account.</p>
     </div>
     <div class="tiles" id="tiles" aria-busy="true"></div>
+    <div class="list-group launcher__week">
+      <div class="list-group__card">
+        <a class="list-row" href="letter/" id="week-row"><span class="list-row__icon" id="week-icon"></span><span class="list-row__label">Your week<small>Last Sunday to Saturday, in a short letter</small></span><span class="list-row__chev" id="week-chev"></span></a>
+      </div>
+    </div>
   </main>
 
   <footer data-site-footer></footer>
   <script src="assets/js/config.js?v=2"></script>
   <script src="assets/vendor/supabase.js?v=1"></script>
-  <script src="assets/js/db.js?v=2"></script>
-  <script src="assets/js/routes-core.js?v=3"></script>
+  <script src="assets/js/db.js?v=3"></script>
+  <script src="assets/js/routes-core.js?v=4"></script>
   <script src="assets/js/global.js?v=39"></script>
   <script src="assets/js/pwa.js?v=5"></script>
   <script>
@@ -58,6 +63,7 @@
           '<span class="tile__foot">Open ' + TN.icon('arrow-right', 16) + '</span></a>';
       }).join('');
       tiles.setAttribute('aria-busy', 'false');
+      TN.el('#week-icon').innerHTML = TN.icon('file-text', 18); TN.el('#week-chev').innerHTML = TN.icon('chevron-right', 18);
     });
   })();
   </script>

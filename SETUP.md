@@ -112,6 +112,40 @@ npm test
 npm run serve        # http://localhost:8080
 ```
 
+## 9. AI (optional — the app is complete without it)
+
+RECKON's only server code is one Supabase Edge Function, `supabase/functions/ai`.
+It writes two things — a lesson suggestion when you look back on a decision,
+and your week as a letter — and every answer is checked before it shows.
+Until the function is deployed and switched on in **Account → AI**, nothing
+changes and nothing is sent anywhere.
+
+1. Get free keys (check each console's current free limits first):
+   [Groq](https://console.groq.com/keys) for lessons, and optionally
+   [Google AI Studio](https://aistudio.google.com/apikey) for the letter
+   (its free tier may train on inputs, so only weekly sums go there) and
+   [OpenRouter](https://openrouter.ai/keys) as a fallback.
+2. Install the CLI once: `npm i -g supabase` (or `brew install supabase/tap/supabase`),
+   then `supabase login` and, in the repo folder, `supabase link --project-ref <your-ref>`.
+3. Deploy and set the secrets:
+
+```
+supabase functions deploy ai
+supabase secrets set GROQ_API_KEY=gsk_… GEMINI_API_KEY=AIza… OPENROUTER_API_KEY=sk-or-…
+supabase secrets set ALLOWED_ORIGIN=https://niyaz8951.github.io   # optional: lock CORS to the site
+supabase secrets set AI_DAILY_CAP=30                               # optional: per person per day
+```
+
+   Model overrides, if a default is retired: `GROQ_MODEL` (default
+   `llama-3.3-70b-versatile`), `GEMINI_MODEL` (`gemini-2.5-flash`),
+   `OPENROUTER_MODEL` (`meta-llama/llama-3.3-70b-instruct:free`).
+4. In the site: **Account → AI → Suggestions from AI**, on.
+5. To measure the providers against the evals before trusting them:
+   `GROQ_API_KEY=… GEMINI_API_KEY=… npm run eval:live`.
+
+Keys never go in the repository. The function's logs record the task,
+provider, latency and outcome — never what anyone wrote.
+
 ## Things to know
 
 - **Your github.io address is shared.** Every Pages project in your account

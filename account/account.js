@@ -25,7 +25,16 @@
     el('#photo-remove').hidden = !user.avatar_url;
     el('#admin-group').hidden = user.role !== 'admin';
     el('#role-note').textContent = user.role === 'admin' ? 'Signed in as an administrator.' : '';
+    el('#ai-on').checked = !!user.ai_on;
+    el('#ai-state').textContent = user.ai_on ? 'On — suggestions only; you decide what is kept' : 'Off — everything works without it';
   }
+  /* AI on/off: optimistic, put back if the save fails. */
+  el('#ai-on').addEventListener('change', async function () {
+    var want = this.checked;
+    user = Object.assign({}, user, { ai_on: want }); paint();
+    try { var r = await TN.api('/api/auth/profile', { method: 'PUT', body: { ai_on: want } }); adopt(r.user); TN.toast(want ? 'AI suggestions on.' : 'AI suggestions off.', 'success'); }
+    catch (e) { user = Object.assign({}, user, { ai_on: !want }); paint(); TN.toast(e.message, 'error'); }
+  });
   /* The header, the cached hint and this page all show the same person. */
   function adopt(u) {
     user = u;

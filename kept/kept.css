@@ -335,3 +335,15 @@ body.is-pushed .kp-head { display: none; }
   .kp-screen[data-screen="history"] .toolbar select { max-width: none; }
   .kp-screen[data-screen="history"] .toolbar #hx-export { grid-column: 1 / -1; justify-content: center; }
 }
+
+/* The one card a day (v2 phase 3): a heads-up, a look back, or an
+   invitation. Calm surface, the accent only on the primary action. */
+.kp-card .eyebrow { color: var(--color-primary); }
+.kp-card__title { margin: 4px 0 0; font-size: 1.1875rem; line-height: 1.3; font-weight: 600; }
+.kp-card__body { margin: var(--space-2) 0 0; color: var(--color-text); line-height: 1.45; }
+.kp-card__acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.kp-card__acts .btn { min-height: 44px; }
+.kp-card__why { margin: var(--space-3) 0 0; font-size: 0.75rem; color: var(--color-text-muted); line-height: 1.4; }
+.kp-card__not { background: none; border: 0; padding: 0 0 0 4px; font: inherit; color: var(--color-primary); cursor: pointer; min-height: 24px; }
+.kp-setaside { margin-top: var(--space-2); display: flex; gap: 6px; align-items: baseline; }
+.kp-setaside svg { flex: none; color: var(--color-primary); }

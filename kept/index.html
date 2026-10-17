@@ -14,8 +14,8 @@
   <!-- Theme before first paint (same rule as applyTheme in global.js): the
        saved choice, else the phone's own setting. -->
   <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
-  <link rel="stylesheet" href="../assets/css/global.css?v=36">
-  <link rel="stylesheet" href="../kept/kept.css?v=4">
+  <link rel="stylesheet" href="../assets/css/global.css?v=37">
+  <link rel="stylesheet" href="../kept/kept.css?v=5">
   <title>KEPT — RECKON</title>
   <meta name="description" content="KEPT — how much of your money stays yours.">
 </head>
@@ -227,18 +227,20 @@
   <footer data-site-footer></footer>
   <script src="../assets/js/config.js?v=2"></script>
   <script src="../assets/vendor/supabase.js?v=1"></script>
-  <script src="../assets/js/db.js?v=2"></script>
-  <script src="../assets/js/routes-core.js?v=3"></script>
+  <script src="../assets/js/db.js?v=3"></script>
+  <script src="../assets/js/routes-core.js?v=4"></script>
   <script src="../assets/js/global.js?v=39"></script>
   <script src="../assets/js/pwa.js?v=5"></script>
   <!-- Chart.js and SheetJS are no longer loaded here: kept.js fetches
        Chart.js the first time a chart is drawn and kept-import.js fetches
        SheetJS the first time a file is read or written. -->
   <script src="../kept/kept-engine.js?v=1" defer></script>
+  <script src="../kept/kept-recur.js?v=1" defer></script>
+  <script src="../assets/js/cards.js?v=1" defer></script>
   <script src="../kept/kept-core.js?v=1" defer></script>
-  <script src="../kept/kept-data.js?v=1" defer></script>
+  <script src="../kept/kept-data.js?v=2" defer></script>
   <script src="../kept/kept-store.js?v=1" defer></script>
   <script src="../kept/kept-import.js?v=2" defer></script>
-  <script src="../kept/kept.js?v=5" defer></script>
+  <script src="../kept/kept.js?v=6" defer></script>
 </body>
 </html>

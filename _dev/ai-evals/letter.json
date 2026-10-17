@@ -1,0 +1,515 @@
+{
+ "task": "letter",
+ "note": "Facts sets are what assets/js/letter.js produces (invented weeks). Recorded letters are hand-built fixtures; npm run eval:live asks the real providers.",
+ "cases": [
+  {
+   "id": "W01",
+   "facts": {
+    "week": {
+     "from": "4 Oct",
+     "to": "10 Oct",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,600",
+     "spent_week_before": "AED 1,800",
+     "days_with_entries": 4,
+     "change": "AED 200 less than the week before",
+     "biggest_category": "School",
+     "biggest_category_amount": "AED 550"
+    },
+    "time": {
+     "yours_total": "11h",
+     "yours_per_day": "1h 30m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Sunday",
+     "best_day_yours": "2h"
+    },
+    "decisions": {
+     "logged_this_week": 2,
+     "reviewed_this_week": 0,
+     "due_now": 0,
+     "open": 6,
+     "said_sure": "78%",
+     "were_right": "61%"
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,600 went on everyday spending, AED 200 less than the week before, so the week before sits at AED 1,800 for comparison. School took the largest share at AED 550. You logged something on 4 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 11h of the week was yours by choice, which works out to about 1h 30m a day. Sunday was the fullest, with 2h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 2 and looked back on 0, with 0 waiting for a review and 6 still open. When you say 78% sure you have been right 61% of the time, a gap worth keeping in mind before the next big call.",
+    "suggestion": "Check in each evening this week; a usual day is one swipe."
+   },
+   "valid": true
+  },
+  {
+   "id": "W02",
+   "facts": {
+    "week": {
+     "from": "11 Oct",
+     "to": "17 Oct",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,600",
+     "spent_week_before": "AED 3,000",
+     "days_with_entries": 5,
+     "change": "AED 400 less than the week before",
+     "biggest_category": "Dining",
+     "biggest_category_amount": "AED 1,180"
+    },
+    "time": {
+     "yours_total": "15h",
+     "yours_per_day": "2h 05m",
+     "days_on_record": 7,
+     "days_checked_in": 4,
+     "target": "20%",
+     "best_day": "Sunday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 1,
+     "reviewed_this_week": 0,
+     "due_now": 1,
+     "open": 4
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 2,600 went on everyday spending, AED 400 less than the week before, so the week before sits at AED 3,000 for comparison. Dining took the largest share at AED 1,180. You logged something on 5 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 15h of the week was yours by choice, which works out to about 2h 05m a day. Sunday was the fullest, with 4h spent the way you meant to spend it. You checked in on 4 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 1 and looked back on 0, with 1 waiting for a review and 4 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": true
+  },
+  {
+   "id": "W03",
+   "facts": {
+    "week": {
+     "from": "13 Sep",
+     "to": "19 Sep",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,900",
+     "spent_week_before": "AED 3,100",
+     "days_with_entries": 6,
+     "change": "AED 200 less than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 960"
+    },
+    "time": {
+     "yours_total": "16h",
+     "yours_per_day": "2h 15m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Monday",
+     "best_day_yours": "3h"
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 2,900 went on everyday spending, AED 200 less than the week before, so the week before sits at AED 3,100 for comparison. Utilities took the largest share at AED 960. You logged something on 6 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 16h of the week was yours by choice, which works out to about 2h 15m a day. Monday was the fullest, with 3h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.",
+    "suggestion": "Check in each evening this week; a usual day is one swipe."
+   },
+   "valid": true
+  },
+  {
+   "id": "W04",
+   "facts": {
+    "week": {
+     "from": "20 Sep",
+     "to": "26 Sep",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,700",
+     "spent_week_before": "AED 900",
+     "days_with_entries": 3,
+     "change": "AED 800 more than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 780"
+    },
+    "time": {
+     "yours_total": "18h",
+     "yours_per_day": "2h 30m",
+     "days_on_record": 7,
+     "days_checked_in": 6,
+     "target": "20%",
+     "best_day": "Thursday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 1,
+     "reviewed_this_week": 1,
+     "due_now": 1,
+     "open": 6
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,700 went on everyday spending, AED 800 more than the week before, so the week before sits at AED 900 for comparison. Utilities took the largest share at AED 780. You logged something on 3 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 18h of the week was yours by choice, which works out to about 2h 30m a day. Thursday was the fullest, with 4h spent the way you meant to spend it. You checked in on 6 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 1 and looked back on 1, with 1 waiting for a review and 6 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": true
+  },
+  {
+   "id": "W05",
+   "facts": {
+    "week": {
+     "from": "27 Sep",
+     "to": "3 Oct",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,800",
+     "spent_week_before": "AED 2,300",
+     "days_with_entries": 5,
+     "change": "AED 500 less than the week before",
+     "biggest_category": "Dining",
+     "biggest_category_amount": "AED 550"
+    },
+    "decisions": {
+     "logged_this_week": 0,
+     "reviewed_this_week": 0,
+     "due_now": 0,
+     "open": 5,
+     "said_sure": "78%",
+     "were_right": "61%"
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,800 went on everyday spending, AED 500 less than the week before, so the week before sits at AED 2,300 for comparison. Dining took the largest share at AED 550. You logged something on 5 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nIn the journal you logged 0 and looked back on 0, with 0 waiting for a review and 5 still open. When you say 78% sure you have been right 61% of the time, a gap worth keeping in mind before the next big call. Nothing here needs fixing tonight; it is simply a quiet look at where the days and the money actually went, written down so next week starts from what happened rather than from what it felt like.",
+    "suggestion": "Log something every day, even the quiet ones."
+   },
+   "valid": true
+  },
+  {
+   "id": "W06",
+   "facts": {
+    "week": {
+     "from": "6 Sep",
+     "to": "12 Sep",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,900",
+     "spent_week_before": "AED 3,500",
+     "days_with_entries": 5,
+     "change": "AED 600 less than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 1,190"
+    },
+    "time": {
+     "yours_total": "13h",
+     "yours_per_day": "1h 50m",
+     "days_on_record": 7,
+     "days_checked_in": 2,
+     "target": "20%",
+     "best_day": "Friday",
+     "best_day_yours": "3h"
+    },
+    "decisions": {
+     "logged_this_week": 3,
+     "reviewed_this_week": 0,
+     "due_now": 2,
+     "open": 5
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 2,900 went on everyday spending, AED 600 less than the week before, so the week before sits at AED 3,500 for comparison. Utilities took the largest share at AED 1,190. You logged something on 5 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 13h of the week was yours by choice, which works out to about 1h 50m a day. Friday was the fullest, with 3h spent the way you meant to spend it. You checked in on 2 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 3 and looked back on 0, with 2 waiting for a review and 5 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": true
+  },
+  {
+   "id": "W07",
+   "facts": {
+    "week": {
+     "from": "30 Aug",
+     "to": "5 Sep",
+     "days": 7
+    },
+    "time": {
+     "yours_total": "17h",
+     "yours_per_day": "2h 25m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Monday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 2,
+     "reviewed_this_week": 2,
+     "due_now": 2,
+     "open": 3,
+     "said_sure": "78%",
+     "were_right": "61%"
+    }
+   },
+   "recorded": {
+    "letter": "On time, 17h of the week was yours by choice, which works out to about 2h 25m a day. Monday was the fullest, with 4h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 2 and looked back on 2, with 2 waiting for a review and 3 still open. When you say 78% sure you have been right 61% of the time, a gap worth keeping in mind before the next big call. Nothing here needs fixing tonight; it is simply a quiet look at where the days and the money actually went, written down so next week starts from what happened rather than from what it felt like.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": true
+  },
+  {
+   "id": "W08",
+   "facts": {
+    "week": {
+     "from": "23 Aug",
+     "to": "29 Aug",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,900",
+     "spent_week_before": "AED 1,100",
+     "days_with_entries": 5,
+     "change": "AED 800 more than the week before",
+     "biggest_category": "Grocery",
+     "biggest_category_amount": "AED 810"
+    },
+    "time": {
+     "yours_total": "16h",
+     "yours_per_day": "2h 15m",
+     "days_on_record": 7,
+     "days_checked_in": 3,
+     "target": "20%",
+     "best_day": "Sunday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 2,
+     "reviewed_this_week": 1,
+     "due_now": 0,
+     "open": 2
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,900 went on everyday spending, AED 800 more than the week before, so the week before sits at AED 1,100 for comparison. Grocery took the largest share at AED 810. You logged something on 5 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 16h of the week was yours by choice, which works out to about 2h 15m a day. Sunday was the fullest, with 4h spent the way you meant to spend it. You checked in on 3 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 2 and looked back on 1, with 0 waiting for a review and 2 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Check in each evening this week; a usual day is one swipe."
+   },
+   "valid": true
+  },
+  {
+   "id": "W09",
+   "facts": {
+    "week": {
+     "from": "16 Aug",
+     "to": "22 Aug",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,000",
+     "spent_week_before": "AED 1,600",
+     "days_with_entries": 5,
+     "change": "AED 400 more than the week before",
+     "biggest_category": "School",
+     "biggest_category_amount": "AED 830"
+    },
+    "time": {
+     "yours_total": "9h",
+     "yours_per_day": "1h 15m",
+     "days_on_record": 7,
+     "days_checked_in": 4,
+     "target": "20%",
+     "best_day": "Tuesday",
+     "best_day_yours": "4h"
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 2,000 went on everyday spending, AED 400 more than the week before, so the week before sits at AED 1,600 for comparison. School took the largest share at AED 830. You logged something on 5 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 9h of the week was yours by choice, which works out to about 1h 15m a day. Tuesday was the fullest, with 4h spent the way you meant to spend it. You checked in on 4 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.",
+    "suggestion": "Check in each evening this week; a usual day is one swipe."
+   },
+   "valid": true
+  },
+  {
+   "id": "W10",
+   "facts": {
+    "week": {
+     "from": "9 Aug",
+     "to": "15 Aug",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,300",
+     "spent_week_before": "AED 2,100",
+     "days_with_entries": 3,
+     "change": "AED 800 less than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 540"
+    },
+    "time": {
+     "yours_total": "18h",
+     "yours_per_day": "2h 30m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Thursday",
+     "best_day_yours": "3h"
+    },
+    "decisions": {
+     "logged_this_week": 2,
+     "reviewed_this_week": 0,
+     "due_now": 1,
+     "open": 5
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,300 went on everyday spending, AED 800 less than the week before, so the week before sits at AED 2,100 for comparison. Utilities took the largest share at AED 540. You logged something on 3 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 18h of the week was yours by choice, which works out to about 2h 30m a day. Thursday was the fullest, with 3h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 2 and looked back on 0, with 1 waiting for a review and 5 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": true
+  },
+  {
+   "id": "W11",
+   "facts": {
+    "week": {
+     "from": "4 Oct",
+     "to": "10 Oct",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,600",
+     "spent_week_before": "AED 1,800",
+     "days_with_entries": 4,
+     "change": "AED 200 less than the week before",
+     "biggest_category": "School",
+     "biggest_category_amount": "AED 550"
+    },
+    "time": {
+     "yours_total": "11h",
+     "yours_per_day": "1h 30m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Sunday",
+     "best_day_yours": "2h"
+    },
+    "decisions": {
+     "logged_this_week": 2,
+     "reviewed_this_week": 0,
+     "due_now": 0,
+     "open": 6,
+     "said_sure": "78%",
+     "were_right": "61%"
+    }
+   },
+   "recorded": {
+    "letter": "This week, 14% more than usual, AED 1,600 went on everyday spending, AED 200 less than the week before, so the week before sits at AED 1,800 for comparison. School took the largest share at AED 550. You logged something on 4 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 11h of the week was yours by choice, which works out to about 1h 30m a day. Sunday was the fullest, with 2h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 2 and looked back on 0, with 0 waiting for a review and 6 still open. When you say 78% sure you have been right 61% of the time, a gap worth keeping in mind before the next big call.",
+    "suggestion": "Check in each evening this week; a usual day is one swipe."
+   },
+   "valid": false,
+   "why": "invented percentage"
+  },
+  {
+   "id": "W12",
+   "facts": {
+    "week": {
+     "from": "11 Oct",
+     "to": "17 Oct",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,600",
+     "spent_week_before": "AED 3,000",
+     "days_with_entries": 5,
+     "change": "AED 400 less than the week before",
+     "biggest_category": "Dining",
+     "biggest_category_amount": "AED 1,180"
+    },
+    "time": {
+     "yours_total": "15h",
+     "yours_per_day": "2h 05m",
+     "days_on_record": 7,
+     "days_checked_in": 4,
+     "target": "20%",
+     "best_day": "Sunday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 1,
+     "reviewed_this_week": 0,
+     "due_now": 1,
+     "open": 4
+    }
+   },
+   "recorded": {
+    "letter": "A good week. Keep going.",
+    "suggestion": "Look back on the decisions that are due — a minute each."
+   },
+   "valid": false,
+   "why": "too short"
+  },
+  {
+   "id": "W13",
+   "facts": {
+    "week": {
+     "from": "13 Sep",
+     "to": "19 Sep",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 2,900",
+     "spent_week_before": "AED 3,100",
+     "days_with_entries": 6,
+     "change": "AED 200 less than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 960"
+    },
+    "time": {
+     "yours_total": "16h",
+     "yours_per_day": "2h 15m",
+     "days_on_record": 7,
+     "days_checked_in": 5,
+     "target": "20%",
+     "best_day": "Monday",
+     "best_day_yours": "3h"
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 2,900 went on everyday spending, AED 200 less than the week before, so the week before sits at AED 3,100 for comparison. Utilities took the largest share at AED 960. You logged something on 6 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 16h of the week was yours by choice, which works out to about 2h 15m a day. Monday was the fullest, with 3h spent the way you meant to spend it. You checked in on 5 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.",
+    "suggestion": ""
+   },
+   "valid": false,
+   "why": "no suggestion"
+  },
+  {
+   "id": "W14",
+   "facts": {
+    "week": {
+     "from": "20 Sep",
+     "to": "26 Sep",
+     "days": 7
+    },
+    "money": {
+     "spent": "AED 1,700",
+     "spent_week_before": "AED 900",
+     "days_with_entries": 3,
+     "change": "AED 800 more than the week before",
+     "biggest_category": "Utilities",
+     "biggest_category_amount": "AED 780"
+    },
+    "time": {
+     "yours_total": "18h",
+     "yours_per_day": "2h 30m",
+     "days_on_record": 7,
+     "days_checked_in": 6,
+     "target": "20%",
+     "best_day": "Thursday",
+     "best_day_yours": "4h"
+    },
+    "decisions": {
+     "logged_this_week": 1,
+     "reviewed_this_week": 1,
+     "due_now": 1,
+     "open": 6
+    }
+   },
+   "recorded": {
+    "letter": "This week AED 1,700 went on everyday spending, AED 800 more than the week before, so the week before sits at AED 900 for comparison. Utilities took the largest share at AED 780. You logged something on 3 of the 7 days, and the picture is only as honest as those entries, so the gaps matter more than the totals.\n\nOn time, 18h of the week was yours by choice, which works out to about 2h 30m a day. Thursday was the fullest, with 4h spent the way you meant to spend it. You checked in on 6 of 7 days; the others are your usual day standing in, which is fine as long as you remember it is a guess and not a record.\n\nIn the journal you logged 1 and looked back on 1, with 1 waiting for a review and 6 still open. The score starts to mean something once a few more have come back, so the reviews are the part worth protecting.",
+    "suggestion": "Try to keep spending under AED 500 next week."
+   },
+   "valid": false,
+   "why": "suggestion invents a figure"
+  }
+ ]
+}

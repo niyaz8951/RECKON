@@ -15,7 +15,7 @@
   <!-- Theme before first paint (same rule as applyTheme in global.js): the
        saved choice, else the phone's own setting. -->
   <script>try{var m=localStorage.getItem('tn-theme');document.documentElement.setAttribute('data-theme',m==='light'||m==='dark'?m:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch(e){}</script>
-  <link rel="stylesheet" href="../assets/css/global.css?v=36">
+  <link rel="stylesheet" href="../assets/css/global.css?v=37">
   <title>Account — RECKON</title>
 </head>
 <body data-title="Account">
@@ -49,6 +49,14 @@
       <div class="list-group__card">
         <a class="list-row" href="../kept/settings/"><span class="list-row__icon" data-icon="wallet"></span><span class="list-row__label">KEPT<small>Currency, target, your data</small></span><span class="list-row__chev" data-icon="chevron-right"></span></a>
       </div>
+    </div>
+
+    <div class="list-group">
+      <p class="list-group__title">AI</p>
+      <div class="list-group__card">
+        <label class="list-row switch-row" for="ai-on"><span class="list-row__icon" data-icon="sparkles"></span><span class="list-row__label">Suggestions from AI<small id="ai-state">Off — everything works without it</small></span><input type="checkbox" id="ai-on" role="switch"></label>
+      </div>
+      <p class="list-group__note" id="ai-note">Two things, both optional: a lesson you can use when you look back on a decision, and your week worded as a letter. A lesson sends only that decision's own words; the letter sends only weekly sums — never entries, payees or notes. Nothing is saved without you, and every number is checked against your own.</p>
     </div>
 
     <div class="list-group">
@@ -132,10 +140,10 @@
   <footer data-site-footer></footer>
   <script src="../assets/js/config.js?v=2"></script>
   <script src="../assets/vendor/supabase.js?v=1"></script>
-  <script src="../assets/js/db.js?v=2"></script>
-  <script src="../assets/js/routes-core.js?v=3"></script>
+  <script src="../assets/js/db.js?v=3"></script>
+  <script src="../assets/js/routes-core.js?v=4"></script>
   <script src="../assets/js/global.js?v=39"></script>
   <script src="../assets/js/pwa.js?v=5"></script>
-  <script src="../account/account.js?v=2"></script>
+  <script src="../account/account.js?v=3"></script>
 </body>
 </html>

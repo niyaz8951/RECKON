@@ -168,5 +168,35 @@ await t('reduced motion: the deck says so, cards never move with the finger, ans
   eq(errors.length, 0, errors.join());
 });
 
+await t('text card: Save hands back the words; empty or Skip is "skip"; the assist button fills the box, and a failure says so in one line', async () => {
+  const { w, d, errors } = env(true);
+  const got = [];
+  let calls = 0;
+  w.TNDeck.open({ cards: [
+    { id: 't1', kind: 'text', title: 'What happened?', placeholder: 'One line' },
+    { id: 't2', kind: 'text', title: 'Anything to tell yourself?', assist: { label: 'Suggest one', run: () => { calls++; return calls === 1 ? Promise.reject(new Error('AI is busy — write your own.')) : Promise.resolve('Check the base rate first.'); } } },
+    { id: 't3', kind: 'text', title: 'Empty' }
+  ], onAnswer: (c, a) => got.push(a) });
+  eq(d.activeElement && d.activeElement.className, 'deck-text', 'the box has focus');
+  eq(d.querySelector('.deck-text').getAttribute('placeholder'), 'One line');
+  d.querySelector('.deck-text').value = '  Went fine, slower than hoped. ';
+  d.querySelector('[data-deck="set"]').click(); await tick(200);
+  eq(got[0].value, 'Went fine, slower than hoped.');
+  ok(!d.querySelector('[data-deck="yes"]'), 'no yes/no on a text card');
+  d.querySelector('[data-assist]').click(); await tick(30);
+  eq(d.querySelector('.deck-assist__note').textContent, 'AI is busy — write your own.');
+  eq(d.querySelector('.deck-text').value, '', 'nothing filled on failure');
+  d.querySelector('[data-assist]').click(); await tick(30);
+  eq(d.querySelector('.deck-text').value, 'Check the base rate first.');
+  ok(/suggestion/.test(d.querySelector('.deck-assist__note').textContent));
+  eq(got.length, 1, 'a suggestion is not an answer');
+  const ta = d.querySelector('.deck-text');
+  ta.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true })); await tick(200);
+  eq(got[1].value, 'Check the base rate first.');
+  d.querySelector('[data-deck="set"]').click(); await tick(200);
+  eq(got[2], 'skip', 'saving an empty box is a skip');
+  eq(errors.length, 0, errors.join());
+});
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);

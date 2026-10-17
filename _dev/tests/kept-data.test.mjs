@@ -201,6 +201,31 @@ await t('profile: dismissed findings are kept as id → signature, cleaned and b
 
 
 /* ---------------------------------------------------- what the database enforces */
+await t('patterns: one answer per payee; "reserved" keeps the day it started; undo removes the answer; bootstrap carries patterns and KEPT card feedback', async () => {
+  let r = await call('patterns', 'PUT', { body: { key: 'AXA CAR INSURANCE', status: 'reserved', label: 'Axa Car Insurance', freq: 'yearly', amount_minor: -235000, next_d: '2026-11-12' } });
+  eq(r.status, 200); eq(r.body.patterns.length, 1);
+  const p = r.body.patterns[0];
+  eq(p.status, 'reserved'); eq(p.amount_minor, 235000, 'stored positive'); ok(/^\d{4}-\d{2}-\d{2}$/.test(p.reserve_from));
+  await S.admin("update public.kept_patterns set reserve_from = '2026-10-01' where key = 'AXA CAR INSURANCE'");
+  r = await call('patterns', 'PUT', { body: { key: 'AXA CAR INSURANCE', status: 'reserved', next_d: '2026-11-12', amount_minor: 235000 } });
+  eq(r.body.patterns[0].reserve_from, '2026-10-01', 'saying yes again does not restart the set-aside');
+  r = await call('patterns', 'PUT', { body: { key: 'GEMS SCHOOL FEES', status: 'dismissed' } });
+  eq(r.body.patterns.length, 2); eq(r.body.patterns[1].reserve_from, null);
+  eq((await call('patterns', 'PUT', { body: { key: 'X', status: 'maybe' } })).status, 400);
+  eq((await call('patterns', 'PUT', { body: { key: 'X', status: 'confirmed', next_d: '12/11/2026' } })).status, 400);
+  r = await call('patterns', 'DELETE', { query: 'key=' + encodeURIComponent('GEMS SCHOOL FEES') });
+  eq(r.body.patterns.length, 1);
+  await D.handle('POST', '/api/cards/feedback', { app: 'kept', type: 'heads-up', card_key: 'AXA CAR INSURANCE', verdict: 'shown', d: '2026-10-17' });
+  eq((await D.handle('POST', '/api/cards/feedback', { app: 'kept', type: 'heads-up', card_key: 'AXA CAR INSURANCE', verdict: 'shown', d: '2026-10-17' })).already, true, 'shown once a day');
+  await D.handle('POST', '/api/cards/feedback', { app: 'kept', type: 'heads-up', card_key: 'AXA CAR INSURANCE', verdict: 'acted', d: '2026-10-17' });
+  await D.handle('POST', '/api/cards/feedback', { app: 'decided', type: 'review', card_key: 'dec_1', verdict: 'useful' });
+  let bad = null; try { await D.handle('POST', '/api/cards/feedback', { app: 'kept', type: 'x', card_key: 'y', verdict: 'loved' }); } catch (e) { bad = e.status; }
+  eq(bad, 400);
+  const b = (await call('bootstrap', 'GET')).body;
+  eq(b.patterns.length, 1); eq(b.needsSchema, undefined);
+  eq(b.feedback.length, 2, 'only KEPT\'s cards'); eq(b.feedback[1].verdict, 'acted');
+  eq((await D.handle('GET', '/api/cards/feedback?app=decided')).feedback.length, 1);
+});
 await t('another active account sees none of these rows, through the routes or directly', async () => {
   const other = await S.signUp('other@example.com', 'Other');
   await S.admin("update public.profiles set status = 'active' where id = $1", [other]);

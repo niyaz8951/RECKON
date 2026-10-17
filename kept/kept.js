@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  var E = window.KeptEngine, IM = window.KeptImport;
+  var E = window.KeptEngine, IM = window.KeptImport, KR = window.KeptRecur, CE = window.TNCards;
   var $ = function (id) { return document.getElementById(id); };
   var esc = TN.esc;
 
@@ -23,7 +23,7 @@
   var S = {
     user: null, profile: null, cats: [], catByName: {}, rows: [], emis: [], rules: [], M: null,
     ai: false, screen: 'home', spendPeriod: null, openCat: null, hxShown: 150, charts: {}, insView: null, budgets: {},
-    scroll: {}, fromCache: false
+    scroll: {}, fromCache: false, patterns: [], feedback: [], found: [], cardsOff: false
   };
   var Store = window.KeptStore;
   var today = function () { return E.iso(new Date()); };
@@ -136,9 +136,18 @@
   function rebuild() {
     var es = S.rows.length ? E.emiSummary(S.emis || [], S.rows, today()) : null;
     S.M = S.rows.length ? E.build(S.rows, { today: today(), catClass: catClass, emiMonthly: es ? es.monthly : 0 }) : null;
+    S.found = KR ? KR.detect(S.rows, today()) : [];
     analyse();
   }
-  function committed() { return E.committedThisMonth(S.emis || [], S.rules || [], today()); }
+  /* Still due this month: bills and EMIs, plus what reserved yearly bills
+     hold back (kept-recur.js setAside) — that is how "set aside" works:
+     Safe to spend simply stops offering it. */
+  function committed() {
+    var c = E.committedThisMonth(S.emis || [], S.rules || [], today());
+    var sa = KR ? KR.setAside(S.found, S.patterns, today()) : { total: 0, items: [] };
+    c.other += sa.total; c.setAside = sa;
+    return c;
+  }
   /* "≈ 2h 10m of your work" — or nothing, when there is no income to measure by. */
   function timeCost(minor) { var t = E.timeCost(minor, S.M); return t ? '<span class="kp-time" title="at your average income">≈ ' + esc(t) + '</span>' : ''; }
   /* Puts a bootstrap payload (from the server or the snapshot) into state.
@@ -148,11 +157,14 @@
     S.profile = b.profile; S.cats = b.categories || [];
     S.catByName = {}; S.cats.forEach(function (c) { S.catByName[c.name] = c; });
     S.emis = b.emis || []; S.rules = b.rules || []; S.rows = b.transactions || [];
+    if (b.patterns) S.patterns = b.patterns;
+    if (b.feedback) S.feedback = b.feedback;
+    S.cardsOff = b.needsSchema === 'patterns';
     rebuild();
     return fingerprint() !== before;
   }
   function fingerprint() {
-    try { return JSON.stringify([S.profile, S.cats, S.emis, S.rules, S.rows.map(function (r) { return [r.id, r.d, r.amount_minor, r.descr, r.cat, r.remark]; })]); }
+    try { return JSON.stringify([S.profile, S.cats, S.emis, S.rules, S.patterns, S.rows.map(function (r) { return [r.id, r.d, r.amount_minor, r.descr, r.cat, r.remark]; })]); }
     catch (e) { return String(Math.random()); }
   }
   /* The snapshot follows the state: every successful write re-saves it, so
@@ -162,7 +174,7 @@
     if (!Store || !S.user || !S.profile) return;
     clearTimeout(persistTimer);
     persistTimer = setTimeout(function () {
-      Store.write(S.user.id, { profile: S.profile, categories: S.cats, emis: S.emis, rules: S.rules, transactions: S.rows });
+      Store.write(S.user.id, { profile: S.profile, categories: S.cats, emis: S.emis, rules: S.rules, transactions: S.rows, patterns: S.patterns, feedback: S.feedback });
     }, 150);
   }
   async function loadAll() {
@@ -365,7 +377,9 @@
       '<div class="kp-keptline">Kept so far <b>' + money(st.keptNow) + '</b>' + (st.rate != null ? ' (' + pct(st.rate) + ')' : '') + (st.live && st.projRate != null ? ' · month-end at this pace <b>' + money(st.projKept) + '</b> (' + projTxt + ')' : '') + '<span class="kp-muted-sm"> · investing counts as kept</span></div>' +
       '<div class="kp-pace" title="spending vs your usual pace"><i class="' + (st.out <= st.pace ? '' : 'is-over') + '" style="width:' + Math.min(100, st.usualPct) + '%"></i><em style="left:' + Math.min(100, st.day / 30.44 * 100) + '%"></em></div>' +
       '<div class="kp-muted-sm">Out <b>' + money(st.out) + '</b> vs <b>' + money(st.pace) + '</b> usual by day ' + st.day + ' · bar = share of a usual month, marker = today</div>' +
+      (cm.setAside && cm.setAside.items.length ? '<div class="kp-muted-sm kp-setaside">' + TN.icon('flag', 12) + ' Holding back ' + cm.setAside.items.map(function (x) { return money(x.perDay) + '/day for ' + esc(x.label) + ' (' + esc(E.parse(x.next_d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })) + ')'; }).join(', ') + '.</div>' : '') +
       insight(verdict, act, tone) + '</div>';
+    h += '<div id="kp-card-slot"></div>';
 
     // This week — the habit loop: what went out, against last week, and
     // whether the record is being kept at all.
@@ -412,6 +426,72 @@
     box.innerHTML = h;
     wireGo(box);
     wireTx(box);
+    renderCard();
+  }
+
+  /* ------------------------------------------------- the one card (phase 3)
+     CardEngine picks at most one of: a heads-up before a yearly/quarterly
+     bill, a look back at last month, or "bring your last year in". Every
+     card says why it is there; the person's answers teach the engine. */
+  function candidates() {
+    if (!KR || !S.M) return [];
+    var o = { money: money, avgSpend: S.M.avg ? S.M.avg.spend : 0, targetBp: S.profile.target_keep_bp };
+    return KR.headsUps(S.found, S.patterns, today(), o).concat(KR.lookback(S.M, today(), o), KR.importCard(S.M, today()));
+  }
+  function feedback(card, verdict) {
+    var f = { app: 'kept', type: card.type, card_key: card.key, verdict: verdict, d: today() };
+    S.feedback.push(f); persist();
+    return api('/api/cards/feedback', { method: 'POST', body: f }).catch(function () { /* the card already moved on; feedback is best-effort */ });
+  }
+  function renderCard() {
+    var slot = $('kp-card-slot'); if (!slot) return;
+    if (S.cardsOff || !CE) { slot.innerHTML = ''; return; }
+    var c = CE.forDate(candidates(), S.feedback, today(), { app: 'kept' });
+    if (!c) { slot.innerHTML = ''; return; }
+    var acts = c.actions || [{ label: 'Useful', value: 'useful', primary: true }];
+    slot.innerHTML = '<section class="panel kp-card" data-card="' + esc(c.type) + '" aria-label="' + esc(c.eyebrow || 'A card for today') + '">' +
+      '<p class="eyebrow">' + esc(c.eyebrow || '') + '</p><h2 class="kp-card__title">' + esc(c.title) + '</h2>' +
+      (c.body ? '<p class="kp-card__body">' + esc(c.body) + '</p>' : '') +
+      '<div class="kp-card__acts">' + acts.map(function (a, i) { return '<button type="button" class="btn ' + (a.primary ? 'btn--primary' : 'btn--ghost') + '" data-card-act="' + i + '">' + esc(a.label) + '</button>'; }).join('') + '</div>' +
+      '<p class="kp-card__why">' + esc(c.why) + ' <button type="button" class="kp-card__not" data-card-not>Not useful</button></p></section>';
+    if (!S.feedback.some(function (f) { return f.d === today() && f.type === c.type && f.card_key === c.key && f.verdict === 'shown'; })) feedback(c, 'shown');
+    slot.querySelectorAll('[data-card-act]').forEach(function (b) { b.addEventListener('click', function () { cardAction(c, acts[+b.getAttribute('data-card-act')].value); }); });
+    slot.querySelector('[data-card-not]').addEventListener('click', function () {
+      feedback(c, 'not');
+      slot.innerHTML = ''; TN.toast('Got it — fewer cards like that.');
+    });
+  }
+  async function answerPattern(p, status) {
+    var body = { key: p.key, status: status, label: p.label, freq: p.freq, amount_minor: p.amount, next_d: p.next_d };
+    var before = S.patterns.slice();
+    S.patterns = S.patterns.filter(function (x) { return x.key !== p.key; }).concat([Object.assign({}, body, { reserve_from: status === 'reserved' ? today() : null })]);
+    try { var r = await api('/api/kept/patterns', { method: 'PUT', body: body }); S.patterns = r.patterns; persist(); }
+    catch (e) { S.patterns = before; fail(e); }
+    renderAll();
+  }
+  function cardAction(c, value) {
+    var slot = $('kp-card-slot');
+    if (value === 'reserve') {
+      feedback(c, 'acted'); answerPattern(c.pattern, 'reserved');
+      undoToast('Holding back ' + money(c.perDay) + '/day for ' + c.pattern.label + '. Safe to spend now allows for it.', async function () {
+        try { var r = await api('/api/kept/patterns?key=' + encodeURIComponent(c.pattern.key), { method: 'DELETE' }); S.patterns = r.patterns; S.feedback = S.feedback.filter(function (f) { return !(f.card_key === c.key && f.d === today() && f.verdict !== 'shown'); }); persist(); renderAll(); }
+        catch (e) { fail(e); }
+      });
+      return;
+    }
+    if (value === 'dismiss') { feedback(c, 'not'); answerPattern(c.pattern, 'dismissed'); TN.toast('Noted — KEPT will not ask about ' + c.pattern.label + ' again.'); return; }
+    if (value === 'import') { feedback(c, 'acted'); location.href = TN.url('kept/settings/'); return; }
+    feedback(c, value === 'useful' ? 'useful' : 'acted');
+    if (slot) slot.innerHTML = '';
+  }
+  /* A toast with Undo: reversible actions do not ask first. */
+  function undoToast(msg, undo) {
+    TN.toast(msg);
+    var region = $('toast-region'), last = region && region.lastElementChild;
+    if (!last) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn--quiet btn--sm toast__undo'; b.textContent = 'Undo';
+    b.addEventListener('click', function () { undo(); last.remove(); });
+    last.appendChild(b);
   }
   function pathLine(ps) {
     if (ps.ok == null) return 'NOT SCORED — no complete month with a normal income yet' + (ps.latest ? ' (latest complete: ' + E.monthShort(ps.latest) + ')' : '') + '. Add or upload the months containing your salary and the path check starts.';

@@ -20,7 +20,9 @@
      GET|POST|DELETE /api/kept/recurring
      GET|PUT|DELETE /api/kept/budgets
      GET|PUT /api/kept/profile
-     GET  /api/kept/analysis                       "What KEPT noticed" (computed) */
+     GET  /api/kept/analysis                       "What KEPT noticed" (computed)
+     GET|PUT|DELETE /api/kept/patterns             the person's answers to the recurrence
+                                                   detector: confirmed | dismissed | reserved */
 (function (root) {
   'use strict';
   var D = root.TNData, db = D.db, route = D.route, fail = D.fail, K = root.KeptCore;
@@ -162,10 +164,18 @@
     var results = await Promise.all([ensureProfile(u), ensureCategories(u), loadLedger(u), liveEmis(u), liveRules(u)]);
     var profile = results[0], categories = results[1], transactions = results[2], rawEmis = results[3], rules = results[4];
     var emis = rawEmis.map(function (e) { return Object.assign({}, e, { derived: K.deriveEmi(e, transactions) }); });
-    return {
+    var out = {
       profile: profile, categories: categories, ai: false, emis: emis, rules: rules, transactions: transactions,
-      posted: posted, today: K.todayISO(), analysis: await analysisFor(u, transactions, rawEmis, rules, profile)
+      posted: posted, today: K.todayISO(), analysis: await analysisFor(u, transactions, rawEmis, rules, profile),
+      patterns: [], feedback: []
     };
+    // Heads-ups and look-backs need schema-2026-10-coach-3; without it the
+    // rest of KEPT works and simply shows no card.
+    try {
+      out.patterns = await livePatterns(u);
+      out.feedback = await db.select('card_feedback', { columns: 'app,type,card_key,verdict,d', where: { user_id: u.id, app: 'kept', d: { gte: K.todayISO(new Date(Date.now() - 120 * 864e5)) } }, order: [['created_at', 'asc']] });
+    } catch (e) { out.needsSchema = 'patterns'; }
+    return out;
   });
 
   route('GET', '/api/kept/analysis', async function (r) {
@@ -314,6 +324,41 @@
     var rows = await db.update('kept_emis', { deleted_at: ts, updated_at: ts }, { id: eid, user_id: u.id, deleted_at: null });
     if (!rows.length) throw fail('Not found.', 404);
     return { ok: true, emis: await emiList(u) };
+  });
+
+  /* ------------------------------------------------------------ patterns */
+  /* One answer per detected pattern (kept/kept-recur.js finds them; the
+     ledger is the evidence, so only the answer is stored). */
+  var PATTERN_STATUS = ['confirmed', 'dismissed', 'reserved'];
+  function shapePattern(p) { return { key: p.key, status: p.status, label: p.label, freq: p.freq, amount_minor: p.amount_minor == null ? null : Number(p.amount_minor), next_d: p.next_d, reserve_from: p.reserve_from, updated_at: p.updated_at }; }
+  async function livePatterns(u) { return (await db.select('kept_patterns', { where: { user_id: u.id }, order: [['created_at', 'asc']] })).map(shapePattern); }
+  route('GET', '/api/kept/patterns', async function (r) {
+    var u = await r.me();
+    try { return { patterns: await livePatterns(u) }; } catch (e) { return { patterns: [], needsSchema: 'patterns' }; }
+  });
+  route('PUT', '/api/kept/patterns', async function (r) {
+    var u = await r.me(), b = r.body;
+    var key = K.str(b.key, 120), status = String(b.status || '');
+    if (!key) throw fail('Which pattern?');
+    if (PATTERN_STATUS.indexOf(status) < 0) throw fail('Bad answer.');
+    var amount = b.amount_minor == null ? null : K.intMinor(b.amount_minor);
+    if (amount != null && amount < 0) amount = -amount;
+    var next = K.str(b.next_d, 10);
+    if (next && !K.isDate(next)) throw fail('Bad date.');
+    var ts = now(), cur = await db.first('kept_patterns', { where: { user_id: u.id, key: key } });
+    var row = { label: K.str(b.label, 80) || key, freq: ['monthly', 'quarterly', 'yearly'].indexOf(b.freq) > -1 ? b.freq : null,
+      amount_minor: amount, next_d: next || null, status: status, updated_at: ts };
+    // The set-aside starts the day the person says yes, and keeps that day.
+    row.reserve_from = status === 'reserved' ? (cur && cur.status === 'reserved' && cur.reserve_from ? cur.reserve_from : K.todayISO()) : null;
+    if (cur) await db.update('kept_patterns', row, { id: cur.id, user_id: u.id });
+    else await db.insert('kept_patterns', Object.assign({ id: newId('kpat'), user_id: u.id, key: key, created_at: ts }, row));
+    return { ok: true, patterns: await livePatterns(u) };
+  });
+  route('DELETE', '/api/kept/patterns', async function (r) {
+    var u = await r.me(), key = K.str(r.query.get('key'), 120);
+    var rows = await db.remove('kept_patterns', { user_id: u.id, key: key });
+    if (!rows.length) throw fail('Not found.', 404);
+    return { ok: true, patterns: await livePatterns(u) };
   });
 
   /* ----------------------------------------------------------- recurring */

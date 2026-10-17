@@ -70,6 +70,20 @@
       lessons: lessons, horizon: horizon, last30: last30 };
   }
 
+  /* The countdown on an open decision: decided on one date, looked back on
+     at another. share = how much of the wait has gone (0..1). */
+  function countdown(d, today) {
+    var total = Math.max(1, daysBetween(d.decided_on, d.review_on));
+    var gone = Math.max(0, Math.min(total, daysBetween(d.decided_on, today)));
+    var left = daysBetween(today, d.review_on);
+    var state = left < 0 ? 'overdue' : left === 0 ? 'due' : left <= 7 ? 'soon' : 'waiting';
+    var head = left < 0 ? Math.abs(left) + ' day' + (left === -1 ? '' : 's') + ' past its date'
+      : left === 0 ? 'Review today' : left === 1 ? '1 day to go' : left + ' days to go';
+    var since = daysBetween(d.decided_on, today);
+    var sub = (since <= 0 ? 'Decided today' : 'Decided ' + since + ' day' + (since === 1 ? '' : 's') + ' ago') + ' · ' + total + '-day wait';
+    return { left: left, total: total, gone: gone, share: gone / total, state: state, head: head, sub: sub };
+  }
+
   /* A sentence about calibration, honest about thin data. */
   function verdict(M) {
     if (M.n < 3) return { tone: 'info', text: M.n === 0 ? 'No decision has come up for review yet. Calibration starts with the third reviewed decision.' : 'Reviewed ' + M.n + ' so far — three are needed before the numbers mean anything.' };
@@ -109,5 +123,5 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   root.DecidedEngine = { DOMAINS: DOMAINS, STAKES: STAKES, REVIEW_PRESETS: REVIEW_PRESETS, SCORE_LABEL: SCORE_LABEL, BUCKETS: BUCKETS,
-    iso: iso, parse: parse, addDays: addDays, daysBetween: daysBetween, domainOf: domainOf, pct: pct, bucketOf: bucketOf, build: build, verdict: verdict, lesson: lesson };
+    iso: iso, parse: parse, addDays: addDays, daysBetween: daysBetween, domainOf: domainOf, pct: pct, bucketOf: bucketOf, build: build, countdown: countdown, verdict: verdict, lesson: lesson };
 })(typeof window !== 'undefined' ? window : globalThis);

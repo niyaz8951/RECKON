@@ -78,6 +78,25 @@ await t('SPENT and DECIDED rows: your own only, and the database checks the shap
   ok(await refused(S.asUser(user).insert('decisions', { id: 'dec_u2', user_id: user, title: 'x', confidence: 140, decided_on: '2026-10-14', review_on: '2026-11-14' })), 'confidence is 0–100');
   ok(await refused(S.asUser(user).insert('decisions', { id: 'dec_u3', user_id: user, title: 'x', outcome_score: 9, decided_on: '2026-10-14', review_on: '2026-11-14' })), 'outcome score is 1–5');
 });
+await t('v2 coach, phase 3 + AI: patterns and card feedback are your own; AI usage and cache are read-only to their owner; ai_on is yours to set', async () => {
+  eq((await S.admin("select count(*)::int as n from public.migrations where name = 'schema-2026-10-coach-3'"))[0].n, 1);
+  const U = S.asUser(user), O = S.asUser(owner);
+  await U.insert('kept_patterns', { id: 'kpat_u1', user_id: user, key: 'CAR INSURANCE', status: 'reserved', amount_minor: 240000, next_d: '2026-11-14', reserve_from: '2026-10-17' });
+  ok(await refused(U.insert('kept_patterns', { id: 'kpat_u2', user_id: user, key: 'CAR INSURANCE' })), 'one answer per pattern');
+  ok(await refused(U.insert('kept_patterns', { id: 'kpat_u3', user_id: user, key: 'X', status: 'maybe' })), 'status checked');
+  eq((await O.select('kept_patterns')).length, 0, 'an admin does not see other people\'s patterns');
+  await U.insert('card_feedback', { id: 'cfb_u1', user_id: user, app: 'kept', type: 'heads-up', card_key: 'CAR INSURANCE', verdict: 'useful', d: '2026-10-17' });
+  ok(await refused(U.insert('card_feedback', { id: 'cfb_u2', user_id: user, app: 'kept', type: 'x', card_key: 'x', verdict: 'loved', d: '2026-10-17' })), 'verdict checked');
+  await S.admin("insert into public.ai_usage (id, user_id, day, task, n) values ($1, $2, '2026-10-17', 'lesson', 3)", [user + '|2026-10-17|lesson', user]);
+  eq((await U.select('ai_usage')).length, 1, 'reads own usage');
+  eq((await O.select('ai_usage')).length, 0);
+  ok(await refused(U.insert('ai_usage', { id: 'x', user_id: user, day: '2026-10-18', task: 'lesson', n: 0 })), 'cannot write usage');
+  eq((await U.update('ai_usage', { n: 0 }, { user_id: user })).length, 0, 'cannot reset the daily cap');
+  eq((await S.admin("select n from public.ai_usage where user_id = $1", [user]))[0].n, 3);
+  ok(await refused(U.insert('ai_cache', { id: 'aic_x', user_id: user, task: 'letter', key: 'w', prompt_version: '1', output_json: '{}' })), 'cannot write cache');
+  await U.update('profiles', { ai_on: 1 }, { id: user });
+  eq((await S.admin('select ai_on from public.profiles where id = $1', [user]))[0].ai_on, 1, 'a person switches AI on for themselves');
+});
 await t('audit: anyone signed in can add a line about themselves and read their own; an admin reads all', async () => {
   await S.asUser(owner).insert('audit_log', { actor_id: owner, action: 'settings.update' });
   await S.asUser(user).insert('audit_log', { actor_id: user, action: 'user.login' });

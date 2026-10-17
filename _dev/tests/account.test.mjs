@@ -137,7 +137,7 @@ await t('admin: settings, closed sign-ups, the audit trail, and deleting an acco
   eq((await call2('PATCH', '/api/admin/users/' + me.id, { role: 'user' })).status, 400);
   await call2('PATCH', '/api/admin/settings', { signup_mode: 'approval', announcement: '' });
 });
-await t('health: every expected table and both schema markers', async () => {
+await t('health: every expected table, column and schema marker', async () => {
   const h = (await call2('GET', '/api/admin/health')).body;
   eq(h.ok, true, JSON.stringify(h.problems)); ok(h.counts.profiles >= 1); ok('decisions' in h.counts && 'spent_days' in h.counts);
 });
@@ -176,6 +176,12 @@ await t('the Account page renders as a settings list on the real routes', async 
   eq($('#hello').textContent, 'Owner Two'); eq((await S.admin("select name from public.profiles where email = 'owner@example.com'"))[0].name, 'Owner Two');
   eq(JSON.parse(w.localStorage.getItem('tn-user')).name, 'Owner Two', 'the header hint follows');
   for (const p of d.querySelectorAll('dialog.sheet .sheet__panel')) ok(p.firstElementChild.classList.contains('sheet__grab'));
+  // AI: off by default, one switch, says what is sent; turning it on is stored on the profile.
+  eq($('#ai-on').checked, false); ok(/Off — everything works without it/.test($('#ai-state').textContent));
+  ok(/only weekly sums/.test($('#ai-note').textContent));
+  $('#ai-on').checked = true; $('#ai-on').dispatchEvent(new w.Event('change')); await tick(150);
+  eq((await S.admin("select ai_on from public.profiles where email = 'owner@example.com'"))[0].ai_on, 1);
+  ok(/^On/.test($('#ai-state').textContent)); eq(w.TN.session.user.ai_on, true, 'pages see it at once');
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

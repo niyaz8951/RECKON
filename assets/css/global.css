@@ -1283,6 +1283,12 @@ html.deck-open, html.deck-open body { overflow: hidden; }
 .deck-dial__v { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(1.75rem, 9vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; pointer-events: none; }
 .deck-dial__presets { display: flex; gap: var(--space-2); }
 .deck-chip { min-height: 44px; min-width: 72px; padding: 0 var(--space-3); border-radius: 999px; border: 0; background: var(--color-surface-sunken); color: var(--color-text); font: inherit; font-weight: 600; cursor: pointer; }
+.deck-text { width: 100%; margin-top: var(--space-3); padding: var(--space-3); border-radius: 12px; border: 0; background: var(--color-surface-sunken); color: var(--color-text); font: inherit; font-size: 1rem; line-height: 1.4; resize: none; }
+.deck-text:focus { outline: 2px solid var(--color-primary); outline-offset: 0; }
+.deck-assist { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.deck-assist__go { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: var(--color-primary); }
+.deck-assist__go[aria-busy="true"] { opacity: .6; }
+.deck-assist__note { margin: 0; font-size: 0.8125rem; color: var(--color-text-muted); flex: 1 1 12rem; }
 .deck-chip[aria-pressed='true'] { background: var(--color-primary-tint); color: var(--color-primary); }
 
 /* Reduced motion: nothing flies or springs; cards fade. */
@@ -1298,3 +1304,29 @@ html.deck-open, html.deck-open body { overflow: hidden; }
   input[type='url'], input[type='search'], input[type='date'], input[type='time'], input[type='tel'], select, textarea { font-size: 1rem; min-height: 44px; }
 }
 input[type='date'] { -webkit-appearance: none; appearance: none; display: block; }
+
+/* ------------------------------------------------- Your week (the letter) */
+.lt-head { margin: var(--space-4) 0 var(--space-3); }
+.lt-letter { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-4); font-size: 1.0625rem; line-height: 1.55; }
+.lt-letter p { margin: 0 0 var(--space-3); }
+.lt-letter p:last-child { margin-bottom: 0; }
+.lt-by { margin: var(--space-2) var(--space-1) 0; font-size: 0.8125rem; color: var(--color-text-muted); }
+.lt-facts { margin-top: var(--space-4); }
+.lt-facts summary { cursor: pointer; color: var(--color-primary); min-height: 44px; display: flex; align-items: center; }
+.lt-facts dl { margin: 0; background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); }
+.lt-dl__h { font-size: 0.8125rem; color: var(--color-text-muted); margin: var(--space-3) 0 var(--space-1); }
+.lt-dl__row { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px 0; border-top: 1px solid var(--color-border); font-size: 0.9375rem; }
+.lt-dl__row dt { color: var(--color-text-muted); }
+.lt-dl__row dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.lt + .site-footer, .lt { padding-bottom: var(--space-6); }
+
+/* An iOS switch in a list row: the label is the row, the switch sits at
+   the end. 51 × 31 like UISwitch; green when on. */
+.switch-row { cursor: pointer; }
+.switch-row input[type='checkbox'] { appearance: none; -webkit-appearance: none; flex: none; width: 51px; height: 31px; min-height: 31px; border-radius: 999px; background: var(--color-surface-sunken); position: relative; cursor: pointer; transition: background .2s; margin: 0 0 0 auto; border: 0; }
+.switch-row input[type='checkbox']::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); transition: transform .2s; }
+.switch-row input[type='checkbox']:checked { background: var(--color-success); }
+.switch-row input[type='checkbox']:checked::after { transform: translateX(20px); }
+.switch-row input[type='checkbox']:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .switch-row input, .switch-row input::after { transition: none; } }
+.launcher__week { margin-top: var(--space-4); }
